@@ -1,0 +1,25 @@
+RewriteEngine On
+
+############################################
+# 1. www -> brez www
+############################################
+RewriteCond %{HTTP_HOST} ^www\.upn\.primaprodukcija\.si$ [NC]
+RewriteRule ^(.*)$ https://upn.primaprodukcija.si/$1 [L,R=301]
+
+############################################
+# 2. HTTP -> HTTPS
+############################################
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://upn.primaprodukcija.si/$1 [L,R=301]
+
+############################################
+# 3. Skrij index.php
+############################################
+# /index.php -> /
+RewriteCond %{THE_REQUEST} \s/index\.php[\s?] [NC]
+RewriteRule ^index\.php$ / [L,R=301]
+
+############################################
+# 5. Fallback za index
+############################################
+DirectoryIndex index.php
