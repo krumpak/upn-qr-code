@@ -56,9 +56,6 @@
 
       const { data } = result;
 
-debugger
-      console.log(data)
-
       const preparedData = [];
       Object.keys(data).forEach(key => {
         const val = data[key];
@@ -117,7 +114,7 @@ debugger
           rok plačila: ${bill.placilo_datum.replace(/(\d{2})(\d{2})(\d{4})/, '$1.$2.$3')}<br>
           koda: ${bill.placilo_namena_koda}<br>
           <br>
-          <a class="qr-link" href="${bill.qr}" download="upn_0${i+1}_${bill.img}_${bill.label}.png"><img src="${bill.qr}" alt="${bill.label}"></a>
+          <a class="qr-link" href="${bill.qr}" download="upn_${bill.img}_0${i+1}_${bill.label}.png"><img src="${bill.qr}" alt="${bill.label}"></a>
           <hr>
         </div>`;
 
