@@ -202,7 +202,126 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
+    body {
+      font-family: 'Lato', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    #result {
+      /* grid postavitev kartic */
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+
+      /* malo zraka okrog */
+      padding: 12px;
+      margin-top: 12px;
+    }
+
+    /* CARD */
+    #result .card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.08);
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+
+      /* da daljša vsebina lepo dela */
+      min-height: 120px;
+      overflow: hidden;
+    }
+
+    /* Hover */
+    #result .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(0,0,0,.12);
+      border-color: rgba(0,0,0,.14);
+    }
+
+    #result .card h2 {
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin: .5em 0;
+    }
+
+    #result .card a {
+      color: inherit;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    #result .card img {
+      object-fit: contain;
+      width: 100%;
+      height: 100%;
+      object-position: center;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      background: #2563eb; /* modra */
+      color: #fff;
+      font-family: 'Lato', system-ui, sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
+      box-shadow: 0 4px 12px rgba(37,99,235,.25);
+    }
+
+    button:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(37,99,235,.35);
+    }
+
+    #logout {
+      position: fixed;
+      right: 1em;
+      top: 1em;
+    }
+
+    input,
+    select,
+    textarea{
+      width: 33%;
+      font-family: 'Lato', system-ui, sans-serif;
+      font-size: 0.95rem;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,.15);
+      background: #fff;
+      color: #111827;
+      outline: none;
+
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+
+    /* Placeholder */
+    input::placeholder,
+    textarea::placeholder{
+      color: rgba(0,0,0,.45);
+    }
+
+    /* Focus */
+    input:focus,
+    select:focus,
+    textarea:focus{
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+    }
+
+    /* Hover */
+    input:hover,
+    select:hover,
+    textarea:hover{
+      border-color: rgba(0,0,0,.25);
+    }
+
     .hidden {
       display: none;
     }
@@ -212,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div id="content" class="hidden">
     <button id="generate">Generiraj</button>
     <div id="result"></div>
-    <hr>
+    <br>
     <button id="logout">Odjava</button>
   </div>
   <div id="login-form" class="hidden">

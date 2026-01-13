@@ -103,19 +103,17 @@
 
         setTimeout(() => {
           $('.qr-link')[i].click();
-        }, 100 * i)
+        }, 50 * i)
 
         return `<div class="card">
-          label: ${bill.label}<br>
-          znesek: ${bill.placilo_znesek} EUR<br>
-          namen: ${bill.placilo_namen}<br>
-          IBAN: ${bill.prejemnik_iban.replace(/^(.{4})(.{4})(.{4})(.{4})(.*)$/, '$1 $2 $3 $4 $5')}<br>
-          referenca: ${bill.placilo_referenca}<br>
-          rok plačila: ${bill.placilo_datum.replace(/(\d{2})(\d{2})(\d{4})/, '$1.$2.$3')}<br>
-          koda: ${bill.placilo_namena_koda}<br>
+          <h2>${bill.label}</h2>
+          <b>${bill.placilo_namen}</b><br>
+          [ ${bill.placilo_namena_koda} ] <b>${bill.placilo_znesek} EUR</b><br>
+          IBAN: <b>${bill.prejemnik_iban.replace(/^(.{4})(.{4})(.{4})(.{4})(.*)$/, '$1 $2 $3 $4 $5')}</b><br>
+          referenca: <b>${bill.placilo_referenca.replace(/^(.{4})(.*)$/, '$1 $2')}</b><br>
+          rok plačila: <b>${bill.placilo_datum.replace(/(\d{2})(\d{2})(\d{4})/, '$1.$2.$3')}</b><br>
           <br>
           <a class="qr-link" href="${bill.qr}" download="upn_${bill.img}_0${i+1}_${bill.label}.png"><img src="${bill.qr}" alt="${bill.label}"></a>
-          <hr>
         </div>`;
 
       }).join('\n');
