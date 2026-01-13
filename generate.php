@@ -30,7 +30,7 @@ if (!empty($input['placilo_referenca']) &&
   exit;
 }
 
-if (!preg_match('/^\d{8}$/', $input['placilo_datum'] ?? '')) {
+if (!preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $input['placilo_datum'] ?? '')) {
   echo json_encode(['error' => 'Neveljaven datum.', 'id' => 'placilo_datum']);
   exit;
 }
@@ -42,7 +42,8 @@ if (!preg_match('/^SI\d{17}$/', $input['prejemnik_iban'] ?? '')) {
 
 /* --- HELPERS --- */
 function upnZnesek($eur) {
-  return str_pad((string) round($eur * 100), 11, '0', STR_PAD_LEFT);
+  $centi = (int) round(bcmul((string)$eur, '100', 2));
+  return str_pad((string)$centi, 11, '0', STR_PAD_LEFT);
 }
 
 /* --- PAYLOAD --- */

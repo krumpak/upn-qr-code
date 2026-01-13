@@ -82,7 +82,7 @@
         <input
           name="placilo_referenca"
           placeholder="SI00-"
-          value="SI00-2024-01"
+          value="SI002024-01"
         >
         <span class="error"></span>
       </div>

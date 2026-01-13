@@ -13,12 +13,12 @@ ENV := .env
 ENV_BAK := env.bak.txt
 ENV_EXAMPLE := .env.example
 ZIP := _deploy.zip
-RANDOM_PORT := $(shell shuf -i 8100-8799 -n 1)
+PORT := 9003
 
 watch:
-	@echo "🌐 Starting local server on http://localhost:${RANDOM_PORT}"
-	@open "http://localhost:${RANDOM_PORT}"
-	php -S localhost:${RANDOM_PORT}
+	@echo "🌐 Starting local server on http://localhost:${PORT}"
+	@open "http://localhost:${PORT}"
+	php -S localhost:${PORT}
 
 install:
 	rm -rf ./vendor

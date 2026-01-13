@@ -52,7 +52,7 @@ async function generate (event) {
   if (!data.placilo_datum) {
     $('[name=placilo_datum] + .error').textContent = 'Datum plačila je obvezen.';
   }
-  data.placilo_datum = data.placilo_datum.replaceAll('-', '');
+  data.placilo_datum = data.placilo_datum.split('-').reverse().join('.');
 
   // REFERENCA → dovoljen -
   if (data.placilo_referenca && !/^[A-Z0-9\-]+$/i.test(data.placilo_referenca)) {
