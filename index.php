@@ -35,6 +35,7 @@
           value="70.00"
           step="0.01"
           min="0.01"
+          max="999999999.99"
           required
         >
         <span class="error"></span>
@@ -79,10 +80,38 @@
 
       <div class="row">
         <label>Referenca</label>
+        <input class="referenca" readonly>
+
         <input
-          name="placilo_referenca"
-          placeholder="SI00-"
-          value="SI002024-01"
+          name="placilo_referenca_oznaka"
+          placeholder="SI"
+          value="SI"
+          readonly
+        >
+
+        <input
+          name="placilo_referenca_model"
+          id="placilo_referenca_model"
+          list="list_referenca"
+          placeholder="00"
+          minlength="2"
+          maxlength="2"
+          value="00"
+          required
+        >
+        <datalist id="list_referenca">
+          <option value="00">00</option>
+          <option value="07">07</option>
+          <option value="12">12</option>
+          <option value="19">19</option>
+          <option value="99">99</option>
+        </datalist>
+
+        <input
+          name="placilo_referenca_sklic"
+          placeholder="0000-00"
+          maxlength="22"
+          value="2024-01"
         >
         <span class="error"></span>
       </div>
@@ -107,6 +136,7 @@
         <input
           name="placnik_naziv"
           placeholder="Ime in priimek"
+          maxlength="70"
           value="Gorazd Krumpak"
         >
         <span class="error"></span>
@@ -117,6 +147,7 @@
         <input
           name="placnik_naslov"
           placeholder="Slovenska cesta 123"
+          maxlength="70"
           value="Litostrojska cesta 25"
         >
         <span class="error"></span>
@@ -127,6 +158,7 @@
         <input
           name="placnik_kraj"
           placeholder="1000 Ljubljana"
+          maxlength="70"
           value="1000 Ljubljana"
         >
         <span class="error"></span>
@@ -152,6 +184,7 @@
         <input
           name="prejemnik_naziv"
           placeholder="Ime in priimek ali podjetje"
+          maxlength="70"
           required
         >
         <span class="error"></span>
@@ -162,6 +195,7 @@
         <input
           name="prejemnik_naslov"
           placeholder="Slovenska cesta 123"
+          maxlength="70"
           required
         >
         <span class="error"></span>
@@ -172,6 +206,7 @@
         <input
           name="prejemnik_kraj"
           placeholder="1000 Ljubljana"
+          maxlength="70"
           required
         >
         <span class="error"></span>

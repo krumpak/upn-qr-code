@@ -20,7 +20,7 @@ $('#placeholder-button').addEventListener('click', generate);
 $('#placeholder-img').addEventListener('click', generate);
 
 async function generate (event) {
-  if ($('#placeholder-img').dataset.status === 'generated') {
+  if (event.target && event.target.dataset.status === 'generated') {
     event.preventDefault();
     $('#placeholder-link').click();
     return;
@@ -55,8 +55,8 @@ async function generate (event) {
   data.placilo_datum = data.placilo_datum.split('-').reverse().join('.');
 
   // REFERENCA → dovoljen -
-  if (data.placilo_referenca && !/^[A-Z0-9\-]+$/i.test(data.placilo_referenca)) {
-    $('[name=placilo_referenca] + .error').textContent = 'Referenca lahko vsebuje le črke, številke in vezaj (-).';
+  if (data.placilo_referenca_sklic && !/^[A-Z0-9\-]+$/i.test(data.placilo_referenca_sklic)) {
+    $('[name=placilo_referenca_sklic] + .error').textContent = 'Referenca lahko vsebuje le črke, številke in največ do dva vezaja (-).';
   }
 
   // IBAN → brez presledkov
@@ -70,6 +70,8 @@ async function generate (event) {
     $('#placeholder-link').classList.remove('loading');
     return;
   }
+
+  data.placilo_referenca = `SI${data.placilo_referenca_model}${data.placilo_referenca_sklic}`
 
   /* ===============================
      POŠLJI JSON
@@ -95,10 +97,10 @@ async function generate (event) {
   $('#placeholder-link').href = json.qr;
   $('#placeholder-link').download = `upn-qr-${data.placilo_datum}.png`;
   
-  $('#placeholder-text').textContent = 'Prenosi QR ⤵️';
+  $('#placeholder-text').textContent = 'Prenesi QR ⤵️';
   $('#placeholder-img').src = json.qr;
   $('#placeholder-img').dataset.status = 'generated';
-  $('#placeholder-result').textContent = json.raw;
+  $('#placeholder-result').textContent = json.raw.split('\n').map((n,i) => `${String(i+1).padStart(2, '0')}. ${n}`).join('\n');
 
   $('#placeholder-link').classList.remove('loading');
 
