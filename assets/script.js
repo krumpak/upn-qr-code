@@ -16,6 +16,32 @@ function $(selector) {
   return null;
 }
 
+prefill();
+function prefill () {
+  const data = {
+    placilo_znesek: '70.00',
+    placilo_koda_namena: 'OTHR',
+    placilo_namen: 'Plačilo po ponudbi 2024-01/P',
+    placilo_referenca_oznaka: 'SI',
+    placilo_referenca_model: '00',
+    placilo_referenca_sklic: '2024-01',
+    placilo_datum: new Date().toISOString().split('T')[0],
+    placnik_naziv: 'Gorazd Krumpak',
+    placnik_naslov: 'Litostrojska cesta 25',
+    placnik_kraj: '1000 Ljubljana',
+    prejemnik_iban: 'SI56 0000 0000 0000 001',
+    prejemnik_naziv: 'Lea Nemec',
+    prejemnik_naslov: 'Litostrojska cesta 25',
+    prejemnik_kraj: '1000 Ljubljana',
+  }
+
+  Object.keys(data).forEach(key => {
+    val = data[key];
+    sel = `[name=${key}]`;
+    $(sel).value = val;
+  })
+}
+
 $('#placeholder-button').addEventListener('click', generate);
 $('#placeholder-img').addEventListener('click', generate);
 
@@ -71,7 +97,7 @@ async function generate (event) {
     return;
   }
 
-  data.placilo_referenca = `SI${data.placilo_referenca_model}${data.placilo_referenca_sklic}`
+  data.placilo_referenca = data.placilo_referenca_oznaka.toUpperCase() + data.placilo_referenca_model + data.placilo_referenca_sklic;
 
   /* ===============================
      POŠLJI JSON
@@ -100,7 +126,7 @@ async function generate (event) {
   $('#placeholder-text').textContent = 'Prenesi QR ⤵️';
   $('#placeholder-img').src = json.qr;
   $('#placeholder-img').dataset.status = 'generated';
-  $('#placeholder-result').textContent = json.raw.split('\n').map((n,i) => `${String(i+1).padStart(2, '0')}. ${n}`).join('\n');
+  $('#placeholder-result').textContent = json.raw.split('\n').map((n,i) => `${String(i+1).padStart(2, '0')}  ${n}`).join('\n');
 
   $('#placeholder-link').classList.remove('loading');
 

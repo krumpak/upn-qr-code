@@ -32,10 +32,10 @@
         <input
           type="number"
           name="placilo_znesek"
-          value="70.00"
           step="0.01"
           min="0.01"
           max="999999999.99"
+          placeholder="00.01"
           required
         >
         <span class="error"></span>
@@ -44,25 +44,27 @@
       <div class="row">
         <label>Koda namena</label>
         <input
-          name="placilo_namena_koda"
+          name="placilo_koda_namena"
           minlength="4"
           maxlength="4"
-          list="kode"
-          placeholder="ADVA"
-          value="GDSV"
+          list="list_kode"
+          placeholder="OTHR"
           required
         >
-        <datalist id="kode">
-          <option value="OTHR"></option>
-          <option value="IVPT"></option>
-          <option value="ADVA"></option>
-          <option value="GDSV"></option>
-          <option value="RENT"></option>
-          <option value="TAXS"></option>
-          <option value="GOVT"></option>
-          <option value="COST"></option>
-          <option value="INSU"></option>
-          <option value="LIFI"></option>
+        <!-- https://www.racunovodja.com/clanki.asp?clanek=5242 -->
+        <datalist id="list_kode">
+          <option value="OTHR">OTHR - Razno</option>
+          <option value="IVPT">IVPT - Plačilo računa</option>
+          <option value="ADVA">ADVA - Plačilo vnaprej / predplačilo</option>
+          <option value="GDSV">GDSV - Kupoprodaja blaga in storitev</option>
+          <option value="RENT">RENT - Najemnina</option>
+          <option value="TAXS">TAXS - Plačilo davkov</option>
+          <option value="GOVT">GOVT - Plačilo v dobro / breme državnega organa</option>
+          <option value="COST">COST - Stroški</option>
+          <option value="INSU">INSU - Državno zavarovanje</option>
+          <option value="LIFI">LIFI - Življenjsko zavarovanje</option>
+          <option value="ENRG">ENRG - Plačilo energetike</option>
+          <option value="ELEC">ELEC - Plačilo elektrike</option>
         </datalist>
       </div>
 
@@ -70,9 +72,8 @@
         <label>Namen plačila</label>
         <input
           name="placilo_namen"
-          placeholder="Namen plačila"
-          value="Plačilo po ponudbi 2024-01/P"
           maxlength="140"
+          placeholder="Namen plačila"
           required
         >
         <span class="error"></span>
@@ -84,34 +85,37 @@
 
         <input
           name="placilo_referenca_oznaka"
+          minlength="2"
+          maxlength="2"
+          list="list_referenca_oznaka"
           placeholder="SI"
-          value="SI"
-          readonly
         >
+        <datalist id="list_referenca_oznaka">
+          <option value="SI">SI - Slovensko SEPA območje</option>
+          <option value="RF">RF - Celotno SEPA območje (tudi izven Slovenije)</option>
+        </datalist>
 
         <input
           name="placilo_referenca_model"
-          id="placilo_referenca_model"
-          list="list_referenca"
-          placeholder="00"
           minlength="2"
           maxlength="2"
-          value="00"
+          list="list_referenca_model"
+          placeholder="00"
           required
         >
-        <datalist id="list_referenca">
-          <option value="00">00</option>
-          <option value="07">07</option>
-          <option value="12">12</option>
-          <option value="19">19</option>
-          <option value="99">99</option>
+        <!-- https://www.sportna-oblacila.si/kaj-je-sklic/ -->
+        <datalist id="list_referenca_model">
+          <option value="00">00 - Dodajamo sklic</option>
+          <option value="07">07 - Distributerji električne energije</option>
+          <option value="12">12 - Večino distributerjev</option>
+          <option value="19">19 - FURS obveznosti</option>
+          <option value="99">99 - Sklic je izpuščen/prazen</option>
         </datalist>
 
         <input
           name="placilo_referenca_sklic"
-          placeholder="0000-00"
           maxlength="22"
-          value="2024-01"
+          placeholder="0000-00"
         >
         <span class="error"></span>
       </div>
@@ -135,9 +139,8 @@
         <label>Naziv</label>
         <input
           name="placnik_naziv"
-          placeholder="Ime in priimek"
           maxlength="70"
-          value="Gorazd Krumpak"
+          placeholder="Ime in priimek"
         >
         <span class="error"></span>
       </div>
@@ -146,9 +149,8 @@
         <label>Naslov</label>
         <input
           name="placnik_naslov"
-          placeholder="Slovenska cesta 123"
           maxlength="70"
-          value="Litostrojska cesta 25"
+          placeholder="Slovenska cesta 123"
         >
         <span class="error"></span>
       </div>
@@ -157,9 +159,8 @@
         <label>Kraj</label>
         <input
           name="placnik_kraj"
-          placeholder="1000 Ljubljana"
           maxlength="70"
-          value="1000 Ljubljana"
+          placeholder="1000 Ljubljana"
         >
         <span class="error"></span>
       </div>
@@ -173,7 +174,6 @@
         <input
           name="prejemnik_iban"
           placeholder="SI56 0000 0000 0000 000"
-          value="SI56 0000 0000 0000 000"
           required
         >
         <span class="error"></span>

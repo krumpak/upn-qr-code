@@ -59,7 +59,7 @@ $lines = [
   /*  9. Znesek              */  upnZnesek((float)$input['placilo_znesek']),
   /* 10. Datum izvršitve     */  "",
   /* 11. Rezervirano         */  "",
-  /* 12. Koda namena         */  $input['placilo_namena_koda'],
+  /* 12. Koda namena         */  $input['placilo_koda_namena'],
   /* 13. Namen plačila       */  $input['placilo_namen'] ?? "",
   /* 14. Rok plačila         */  $input['placilo_datum'],
   /* 15. IBAN prejemnika     */  $input['prejemnik_iban'],
