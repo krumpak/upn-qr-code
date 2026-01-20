@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'akontacija' => [
         'rok' => $rokPlacila,
         'namen' => "Akontacija dohodnine $zaMesec",
-        'znesek' => '281.27',
+        'znesek' => '188.03',
         'iban' => 'SI56011008881000030',
         'referenca' => 'SI1973013242-40002',
         'koda' => $koda,
