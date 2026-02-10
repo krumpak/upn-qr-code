@@ -79,7 +79,7 @@
         
       console.log('preparedData', preparedData)
 
-      const promises = preparedData.map(async (bill) => {
+      const promises = preparedData.map(async (bill, i) => {
         const res = await fetch('generate.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -93,7 +93,13 @@
           return bill;
         }
 
-        Object.assign(bill, json, { success: true, filename: bill.label.replace(/ /gi, '_') });
+        const filename = `upn_${bill.img}_0${i+1}_${bill.label.replace(/ /gi, '_')}.png`;
+        const title = `Prenesi QR kodo za '${bill.label}'`;
+        const prejemnik_iban = bill.prejemnik_iban.replace(/^(.{4})(.{4})(.{4})(.{4})(.*)$/, '$1 $2 $3 $4 $5');
+        const placilo_referenca = bill.placilo_referenca.replace(/^(.{4})(.*)$/, '$1 $2');
+        const placilo_datum = bill.placilo_datum.replace(/(\d{2})(\d{2})(\d{4})/, '$1.$2.$3');
+
+        Object.assign(bill, json, { success: true, prejemnik_iban, placilo_referenca, placilo_datum, filename, title });
         return bill;
       });
 
@@ -108,12 +114,14 @@
         return `<div class="card">
           <h2>${bill.label}</h2>
           <b>${bill.placilo_namen}</b><br>
-          [ ${bill.placilo_namena_koda} ] <b>${bill.placilo_znesek} EUR</b><br>
-          IBAN: <b>${bill.prejemnik_iban.replace(/^(.{4})(.{4})(.{4})(.{4})(.*)$/, '$1 $2 $3 $4 $5')}</b><br>
-          referenca: <b>${bill.placilo_referenca.replace(/^(.{4})(.*)$/, '$1 $2')}</b><br>
-          rok plačila: <b>${bill.placilo_datum.replace(/(\d{2})(\d{2})(\d{4})/, '$1.$2.$3')}</b><br>
+          [ ${bill.placilo_koda_namena} ] <b>${bill.placilo_znesek} EUR</b><br>
+          IBAN: <b>${bill.prejemnik_iban}</b><br>
+          referenca: <b>${bill.placilo_referenca}</b><br>
+          rok plačila: <b>${bill.placilo_datum}</b><br>
           <br>
-          <a class="qr-link" href="${bill.qr}" download="upn_${bill.img}_0${i+1}_${bill.filename}.png"><img src="${bill.qr}" alt="${bill.label}"></a>
+          <a class="qr-link" href="${bill.qr}" download="${bill.filename}" title="${bill.title}">
+            <img src="${bill.qr}" alt="${bill.label}">
+          </a>
         </div>`;
 
       }).join('\n');
