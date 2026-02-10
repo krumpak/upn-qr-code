@@ -64,7 +64,7 @@
           img: val.img_name,
           placilo_datum: val.rok,
           placilo_namen: val.namen,
-          placilo_namena_koda: val.koda,
+          placilo_koda_namena: val.koda,
           placilo_referenca: val.referenca,
           placilo_znesek: val.znesek,
           placnik_kraj: val.placnik.kraj,
@@ -93,7 +93,7 @@
           return bill;
         }
 
-        Object.assign(bill, json, { success: true });
+        Object.assign(bill, json, { success: true, filename: bill.label.replace(/ /gi, '_') });
         return bill;
       });
 
@@ -113,7 +113,7 @@
           referenca: <b>${bill.placilo_referenca.replace(/^(.{4})(.*)$/, '$1 $2')}</b><br>
           rok plačila: <b>${bill.placilo_datum.replace(/(\d{2})(\d{2})(\d{4})/, '$1.$2.$3')}</b><br>
           <br>
-          <a class="qr-link" href="${bill.qr}" download="upn_${bill.img}_0${i+1}_${bill.label}.png"><img src="${bill.qr}" alt="${bill.label}"></a>
+          <a class="qr-link" href="${bill.qr}" download="upn_${bill.img}_0${i+1}_${bill.filename}.png"><img src="${bill.qr}" alt="${bill.label}"></a>
         </div>`;
 
       }).join('\n');

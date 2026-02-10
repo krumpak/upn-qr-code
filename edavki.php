@@ -121,9 +121,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ],
         'img_name' => $img_name,
       ],
-      'ZZ' => [
+      'ZZ in DO' => [
         'rok' => $rokPlacila,
-        'namen' => "Prispevki za ZZ $zaMesec",
+        'namen' => "Prispevki za ZZ in DO $zaMesec",
         'znesek' => '259.18',
         'iban' => 'SI56011008883000073',
         'referenca' => 'SI1973013242-45004',
