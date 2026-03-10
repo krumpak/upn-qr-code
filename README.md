@@ -1,5 +1,11 @@
 # upn-qr-code
 
+### Deploy
+
+```
+make deploy
+```
+
 ### Xdebug 3
 
 1) `php -v` preveri PHP verzijo

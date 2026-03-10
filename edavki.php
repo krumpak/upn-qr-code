@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'PIZ' => [
         'rok' => $rokPlacila,
         'namen' => "Prispevki za PIZ $zaMesec",
-        'znesek' => '349.90',
+        'znesek' => '370.51',
         'iban' => 'SI56011008882000003',
         'referenca' => 'SI1973013242-44008',
         'koda' => $koda,
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'ZZ in DO' => [
         'rok' => $rokPlacila,
         'namen' => "Prispevki za ZZ in DO $zaMesec",
-        'znesek' => '259.18',
+        'znesek' => '272.26',
         'iban' => 'SI56011008883000073',
         'referenca' => 'SI1973013242-45004',
         'koda' => $koda,
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'STV' => [
         'rok' => $rokPlacila,
         'namen' => "Prispevki za STV $zaMesec",
-        'znesek' => '2.88',
+        'znesek' => '3.04',
         'iban' => 'SI56011008881000030',
         'referenca' => 'SI1973013242-43001',
         'koda' => $koda,
@@ -156,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'ZAP' => [
         'rok' => $rokPlacila,
         'namen' => "Prispevki za ZAP $zaMesec",
-        'znesek' => '2.87',
+        'znesek' => '3.04',
         'iban' => 'SI56011008881000030',
         'referenca' => 'SI1973013242-42005',
         'koda' => $koda,
