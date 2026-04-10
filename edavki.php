@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'ZZ in DO' => [
         'rok' => $rokPlacila,
         'namen' => "Prispevki za ZZ in DO $zaMesec",
-        'znesek' => '272.26',
+        'znesek' => '274.45',
         'iban' => 'SI56011008883000073',
         'referenca' => 'SI1973013242-45004',
         'koda' => $koda,
