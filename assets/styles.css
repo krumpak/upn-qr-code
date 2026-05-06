@@ -67,18 +67,23 @@ h2 {
 
 .row .error {
   margin: 0;
-  grid-column: 2;   /* POD INPUTOM */
+  grid-column: 2 / 5;   /* POD INPUTOM */
   grid-row: 2;
   color: red;
   font-size:0.85em;
 }
-
-button {
-  margin-bottom: 20px;
+select {
   padding: 10px 20px;
-  width: 100%;
+}
+button {
+  padding: 10px 20px;
   cursor: pointer;
 }
+.btn-block {
+  margin-bottom: 20px;
+  width: 100%;
+}
+#errors { margin-bottom:10px; }
 .error { color:red; margin-top:10px; }
 .container {
   display: flex;
@@ -153,6 +158,28 @@ button {
   inset: 0;
   border-radius: 50%;
   animation: prixClipFix 2s linear infinite
+}
+
+.presets {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.presets select {
+  flex: 1;
+  min-width: 0;
+}
+
+.presets button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+span.error ul {
+  margin: 0;
+  padding-left: 1.2em;
 }
 
 @keyframes rotate {

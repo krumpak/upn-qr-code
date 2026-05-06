@@ -16,30 +16,70 @@ function $(selector) {
   return null;
 }
 
-prefill();
-function prefill () {
-  const data = {
-    placilo_znesek: '70.00',
-    placilo_koda_namena: 'OTHR',
-    placilo_namen: 'Plačilo po ponudbi 2024-01/P',
-    placilo_referenca_oznaka: 'SI',
-    placilo_referenca_model: '00',
-    placilo_referenca_sklic: '2024-01',
-    placilo_datum: new Date().toISOString().split('T')[0],
-    placnik_naziv: 'Gorazd Krumpak',
-    placnik_naslov: 'Litostrojska cesta 25',
-    placnik_kraj: '1000 Ljubljana',
-    prejemnik_iban: 'SI56 0000 0000 0000 001',
-    prejemnik_naziv: 'Lea Nemec',
-    prejemnik_naslov: 'Litostrojska cesta 25',
-    prejemnik_kraj: '1000 Ljubljana',
-  }
+const STORAGE_KEY = 'upn_presets';
+const getPresets = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+const setPresets = (p) => localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
 
+function applyData(data) {
   Object.keys(data).forEach(key => {
-    val = data[key];
-    sel = `[name=${key}]`;
-    $(sel).value = val;
-  })
+    const el = $(`[name=${key}]`);
+    if (el) el.value = data[key];
+  });
+}
+
+function refreshPresetSelect() {
+  const sel = $('#preset-select');
+  const presets = getPresets();
+  sel.innerHTML = '<option value="" selected disabled>— izberi shranjen vnos —</option>'
+    + presets.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
+}
+
+refreshPresetSelect();
+
+$('#preset-save').addEventListener('click', () => {
+  const ime = prompt('Ime preset-a?');
+  if (!ime) return;
+  const presets = getPresets();
+  presets.unshift({ name: ime, data: Object.fromEntries(new FormData($('#qrForm'))) });
+  setPresets(presets);
+  refreshPresetSelect();
+  $('#preset-select').value = '0';
+});
+
+$('#preset-select').addEventListener('change', () => {
+  const sel = $('#preset-select');
+  if (sel.value === '') return;
+  applyData(getPresets()[sel.value].data);
+});
+
+$('#preset-delete').addEventListener('click', () => {
+  const sel = $('#preset-select');
+  if (sel.value === '') return;
+  const presets = getPresets();
+  if (!confirm(`Izbriši "${presets[sel.value].name}"?`)) return;
+  presets.splice(sel.value, 1);
+  setPresets(presets);
+  refreshPresetSelect();
+});
+
+$('#form-clear').addEventListener('click', () => {
+  $('#qrForm').reset();
+});
+
+function renderErrors(errors) {
+  $('.error').forEach(el => el.innerHTML = '');
+  $('#errors').textContent = '';
+  Object.keys(errors).forEach(field => {
+    const el = $(`[name=${field}] ~ .error`);
+    if (!el) return;
+    const msgs = errors[field];
+    el.innerHTML = msgs.length === 1
+      ? msgs[0]
+      : '<ul>' + msgs.map(m => `<li>${m}</li>`).join('') + '</ul>';
+  });
+  const hasErrors = Object.keys(errors).length > 0;
+  if (hasErrors) $('#errors').textContent = 'Popravi vnešene napake';
+  return hasErrors;
 }
 
 $('#placeholder-button').addEventListener('click', generate);
@@ -55,47 +95,52 @@ async function generate (event) {
 
   $('#placeholder-link').removeAttribute('href')
   $('#placeholder-link').removeAttribute('download');
-  
+
   $('#placeholder-text').innerHTML = '&nbsp;';
   $('#placeholder-img').src = './assets/qr-code.svg';
   $('#placeholder-img').dataset.status = 'initial'
   $('#placeholder-result').textContent = 'n/a';
 
   const form = $('#qrForm');
-  
-  $('.error').forEach(err => err.textContent = '');
-
   const data = Object.fromEntries(new FormData(form));
+  const errors = {};
+  const addError = (field, msg) => { (errors[field] ??= []).push(msg); };
 
-  // ZNESEK → vedno "xx.yy"
-  let znesek = String(data.placilo_znesek).replace(',', '.');
-  if (!/^\d+(\.\d{1,2})?$/.test(znesek)) {
-    $('[name=placilo_znesek] + .error').textContent = 'Znesek ni v pravilni obliki.';
-  }
-  data.placilo_znesek = Number(znesek).toFixed(2);
+  // ZNESEK
+  const znesek = String(data.placilo_znesek).replace(',', '.');
+  if (!znesek || znesek === 'NaN') addError('placilo_znesek', 'Znesek je obvezen.');
+  else if (!/^\d+(\.\d{1,2})?$/.test(znesek)) addError('placilo_znesek', 'Znesek ni v pravilni obliki.');
 
-  // DATUM → YYYYMMDD
-  if (!data.placilo_datum) {
-    $('[name=placilo_datum] + .error').textContent = 'Datum plačila je obvezen.';
-  }
-  data.placilo_datum = data.placilo_datum.split('-').reverse().join('.');
+  // DATUM
+  if (!data.placilo_datum) addError('placilo_datum', 'Datum plačila je obvezen.');
 
-  // REFERENCA → dovoljen -
-  if (data.placilo_referenca_sklic && !/^[A-Z0-9\-]+$/i.test(data.placilo_referenca_sklic)) {
-    $('[name=placilo_referenca_sklic] + .error').textContent = 'Referenca lahko vsebuje le črke, številke in največ do dva vezaja (-).';
-  }
+  // OBVEZNA POLJA
+  if (!data.placilo_koda_namena) addError('placilo_koda_namena', 'Koda namena je obvezna.');
+  if (!data.placilo_namen) addError('placilo_namen', 'Namen plačila je obvezen.');
+  if (!data.placilo_referenca_oznaka) addError('placilo_referenca_oznaka', 'Oznaka reference je obvezna.');
+  if (!data.placilo_referenca_model) addError('placilo_referenca_oznaka', 'Model reference je obvezen.');
+  if (!data.placilo_referenca_sklic) addError('placilo_referenca_oznaka', 'Sklic je obvezen.');
+  if (!data.placnik_naziv) addError('placnik_naziv', 'Naziv plačnika je obvezen.');
+  if (!data.prejemnik_naziv) addError('prejemnik_naziv', 'Naziv prejemnika je obvezen.');
 
-  // IBAN → brez presledkov
-  data.prejemnik_iban = data.prejemnik_iban.replace(/\s+/g, '').toUpperCase();
-  if (!/^SI\d{17}$/.test(data.prejemnik_iban)) {
-    $('[name=prejemnik_iban] + .error').textContent = 'IBAN prejemnika ni pravilne oblike.';
-  }
+  // REFERENCA SKLIC
+  if (data.placilo_referenca_sklic && !/^[A-Z0-9\-]+$/i.test(data.placilo_referenca_sklic))
+    addError('placilo_referenca_oznaka', 'Referenca lahko vsebuje le črke, številke in vezaje (-).');
 
-  if (Array.from($('.error')).some(errorBox => !!errorBox.textContent)) {
-    $('#errors').textContent = 'Popravi vnešene napake';
+  // IBAN
+  const iban = data.prejemnik_iban.replace(/\s+/g, '').toUpperCase();
+  if (!iban) addError('prejemnik_iban', 'IBAN je obvezen.');
+  else if (!/^SI\d{17}$/.test(iban)) addError('prejemnik_iban', 'IBAN ni pravilne oblike (SI + 17 številk).');
+
+  if (renderErrors(errors)) {
     $('#placeholder-link').classList.remove('loading');
     return;
   }
+
+  // FORMAT TRANSFORMACIJE
+  data.placilo_znesek = Number(znesek).toFixed(2);
+  data.placilo_datum = data.placilo_datum.split('-').reverse().join('.');
+  data.prejemnik_iban = iban;
 
   data.placilo_referenca = data.placilo_referenca_oznaka.toUpperCase() + data.placilo_referenca_model + data.placilo_referenca_sklic;
 

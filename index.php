@@ -2,6 +2,7 @@
 <html lang="sl">
 <head>
   <meta charset="UTF-8">
+  <base href="<?= rtrim((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']), '/') . '/' ?>">
   <title>UPN QR koda</title>
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -25,6 +26,17 @@
 
 <div class="container">
   <div class="form">
+    <div class="presets">
+      <select id="preset-select">
+        <option value="" selected disabled>— izberi shranjen vnos —</option>
+      </select>
+<button type="button" id="preset-save" title="Shrani trenutno…">💾</button>
+      <button type="button" id="preset-delete" title="Izbriši">🗑️</button>
+      <button type="button" id="form-clear" title="Počisti obrazec">✕</button>
+    </div>
+
+    <div id="errors" class="error"></div>
+    
     <form id="qrForm">
 
       <div class="row">
@@ -66,6 +78,8 @@
           <option value="ENRG">ENRG - Plačilo energetike</option>
           <option value="ELEC">ELEC - Plačilo elektrike</option>
         </datalist>
+        
+        <span class="error"></span>
       </div>
 
       <div class="row">
@@ -213,11 +227,9 @@
       </div>
 
     </form>
-
-    <div id="errors" class="error"></div>
   </div>
   <div class="result">
-    <button id="placeholder-button">Generiraj QR</button>
+    <button class="btn-block" id="placeholder-button">Generiraj QR</button>
     <a id="placeholder-link" target="_blank" rel="noopener noreferrer">
       <span id="placeholder-text">&nbsp;</span>
       <div class="placeholder-wrapper">
