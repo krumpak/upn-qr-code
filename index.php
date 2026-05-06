@@ -25,6 +25,14 @@
 
 <div class="container">
   <div class="form">
+    <div class="presets">
+      <select id="preset-select">
+        <option value="" selected disabled>— izberi shranjen vnos —</option>
+      </select>
+<button type="button" id="preset-save" title="Shrani trenutno…">💾</button>
+      <button type="button" id="preset-delete" title="Izbriši">🗑️</button>
+      <button type="button" id="form-clear" title="Počisti obrazec">✕</button>
+    </div>
     <form id="qrForm">
 
       <div class="row">
@@ -217,7 +225,7 @@
     <div id="errors" class="error"></div>
   </div>
   <div class="result">
-    <button id="placeholder-button">Generiraj QR</button>
+    <button class="btn-block" id="placeholder-button">Generiraj QR</button>
     <a id="placeholder-link" target="_blank" rel="noopener noreferrer">
       <span id="placeholder-text">&nbsp;</span>
       <div class="placeholder-wrapper">

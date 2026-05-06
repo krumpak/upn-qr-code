@@ -16,31 +16,55 @@ function $(selector) {
   return null;
 }
 
-prefill();
-function prefill () {
-  const data = {
-    placilo_znesek: '70.00',
-    placilo_koda_namena: 'OTHR',
-    placilo_namen: 'Plačilo po ponudbi 2024-01/P',
-    placilo_referenca_oznaka: 'SI',
-    placilo_referenca_model: '00',
-    placilo_referenca_sklic: '2024-01',
-    placilo_datum: new Date().toISOString().split('T')[0],
-    placnik_naziv: 'Gorazd Krumpak',
-    placnik_naslov: 'Litostrojska cesta 25',
-    placnik_kraj: '1000 Ljubljana',
-    prejemnik_iban: 'SI56 0000 0000 0000 001',
-    prejemnik_naziv: 'Lea Nemec',
-    prejemnik_naslov: 'Litostrojska cesta 25',
-    prejemnik_kraj: '1000 Ljubljana',
-  }
+const STORAGE_KEY = 'upn_presets';
+const getPresets = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+const setPresets = (p) => localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
 
+function applyData(data) {
   Object.keys(data).forEach(key => {
-    val = data[key];
-    sel = `[name=${key}]`;
-    $(sel).value = val;
-  })
+    const el = $(`[name=${key}]`);
+    if (el) el.value = data[key];
+  });
 }
+
+function refreshPresetSelect() {
+  const sel = $('#preset-select');
+  const presets = getPresets();
+  sel.innerHTML = '<option value="" selected disabled>— izberi shranjen vnos —</option>'
+    + presets.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
+}
+
+refreshPresetSelect();
+
+$('#preset-save').addEventListener('click', () => {
+  const ime = prompt('Ime preset-a?');
+  if (!ime) return;
+  const presets = getPresets();
+  presets.unshift({ name: ime, data: Object.fromEntries(new FormData($('#qrForm'))) });
+  setPresets(presets);
+  refreshPresetSelect();
+  $('#preset-select').value = '0';
+});
+
+$('#preset-select').addEventListener('change', () => {
+  const sel = $('#preset-select');
+  if (sel.value === '') return;
+  applyData(getPresets()[sel.value].data);
+});
+
+$('#preset-delete').addEventListener('click', () => {
+  const sel = $('#preset-select');
+  if (sel.value === '') return;
+  const presets = getPresets();
+  if (!confirm(`Izbriši "${presets[sel.value].name}"?`)) return;
+  presets.splice(sel.value, 1);
+  setPresets(presets);
+  refreshPresetSelect();
+});
+
+$('#form-clear').addEventListener('click', () => {
+  $('#qrForm').reset();
+});
 
 $('#placeholder-button').addEventListener('click', generate);
 $('#placeholder-img').addEventListener('click', generate);
