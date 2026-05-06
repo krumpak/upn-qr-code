@@ -1,3 +1,11 @@
+############################################
+# 0. Prepreči indeksiranje iskalnikov
+############################################
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow"
+    Header set X-Frame-Options "DENY"
+</IfModule>
+
 RewriteEngine On
 
 ############################################
