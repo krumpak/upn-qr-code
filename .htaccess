@@ -20,6 +20,17 @@ RewriteCond %{THE_REQUEST} \s/index\.php[\s?] [NC]
 RewriteRule ^index\.php$ / [L,R=301]
 
 ############################################
+# 4. Skrij .php končnico za edavki
+############################################
+# /edavki.php -> /edavki (301 redirect, samo GET)
+RewriteCond %{THE_REQUEST} \s/edavki\.php[\s?] [NC]
+RewriteCond %{REQUEST_METHOD} GET
+RewriteRule ^edavki\.php$ /edavki [L,R=301]
+
+# /edavki -> interno serviraj edavki.php
+RewriteRule ^edavki$ edavki.php [L]
+
+############################################
 # 5. Fallback za index
 ############################################
 DirectoryIndex index.php
