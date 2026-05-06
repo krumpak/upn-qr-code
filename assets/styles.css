@@ -83,6 +83,7 @@ button {
   margin-bottom: 20px;
   width: 100%;
 }
+#errors { margin-bottom:10px; }
 .error { color:red; margin-top:10px; }
 .container {
   display: flex;
@@ -174,6 +175,11 @@ button {
 .presets button {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+span.error ul {
+  margin: 0;
+  padding-left: 1.2em;
 }
 
 @keyframes rotate {

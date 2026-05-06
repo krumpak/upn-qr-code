@@ -33,6 +33,9 @@
       <button type="button" id="preset-delete" title="Izbriši">🗑️</button>
       <button type="button" id="form-clear" title="Počisti obrazec">✕</button>
     </div>
+
+    <div id="errors" class="error"></div>
+    
     <form id="qrForm">
 
       <div class="row">
@@ -74,6 +77,8 @@
           <option value="ENRG">ENRG - Plačilo energetike</option>
           <option value="ELEC">ELEC - Plačilo elektrike</option>
         </datalist>
+        
+        <span class="error"></span>
       </div>
 
       <div class="row">
@@ -221,8 +226,6 @@
       </div>
 
     </form>
-
-    <div id="errors" class="error"></div>
   </div>
   <div class="result">
     <button class="btn-block" id="placeholder-button">Generiraj QR</button>
