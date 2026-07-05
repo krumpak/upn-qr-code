@@ -331,6 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
   <div id="content" class="hidden">
     <button id="generate">Generiraj</button>
+    <button id="download" class="hidden">Prenesi vse</button>
     <div id="result"></div>
     <br>
     <button id="logout">Odjava</button>

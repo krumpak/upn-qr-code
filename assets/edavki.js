@@ -106,10 +106,8 @@
       const res = await Promise.all(promises);
 
       $('#result').innerHTML = res.map((bill, i) => {
-
-        setTimeout(() => {
-          $('.qr-link')[i].click();
-        }, 50 * i)
+    
+        $('#download').classList.remove('hidden');
 
         return `<div class="card">
           <h2>${bill.label}</h2>
@@ -132,6 +130,14 @@
       console.error(err);
     }
   });
+
+  $('#download').addEventListener('click', async (e) => {
+    $('.qr-link').forEach((link, i) => {
+      setTimeout(() => {
+        link.click();
+      }, 50 * i);
+    });
+  })
 
   $('#login').addEventListener('click', (e) => {
     const token = $('#token').value;
