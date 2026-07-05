@@ -63,11 +63,16 @@ if (!($input['placilo_referenca_sklic'] ?? '')) $errors['placilo_referenca_oznak
 if (!($input['placnik_naziv'] ?? '')) $errors['placnik_naziv'][] = 'Naziv plačnika je obvezen.';
 if (!($input['prejemnik_naziv'] ?? '')) $errors['prejemnik_naziv'][] = 'Naziv prejemnika je obvezen.';
 
-if (!empty($input['placilo_referenca']) && !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca']))
-  $errors['placilo_referenca'][] = 'Neveljavna referenca.';
+if (($input['placilo_referenca_sklic'] ?? '') && !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca_sklic']))
+  $errors['placilo_referenca_oznaka'][] = 'Referenca lahko vsebuje le črke, številke in vezaje (-).';
 
-if (!preg_match('/^SI\d{17}$/', $input['prejemnik_iban'] ?? ''))
-  $errors['prejemnik_iban'][] = 'Neveljaven IBAN.';
+$iban = strtoupper(preg_replace('/\s+/', '', $input['prejemnik_iban'] ?? ''));
+if (!$iban) {
+  $errors['prejemnik_iban'][] = 'IBAN je obvezen.';
+} else {
+  if (!preg_match('/^SI\d{17}$/', $iban))
+    $errors['prejemnik_iban'][] = 'IBAN ni pravilne oblike (SI + 17 številk).';
+}
 
 if (!empty($errors)) {
   json_respond(['errors' => $errors], 422);
