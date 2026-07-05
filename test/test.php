@@ -40,7 +40,7 @@ function post_json(array $data): array {
 
 function valid_input(array $overrides = []): array {
   $tomorrow = (new DateTime('tomorrow'))->format('d.m.Y');
-  return array_merge([
+  $data = array_merge([
     'placilo_znesek'           => '10.00',
     'placilo_datum'            => $tomorrow,
     'placilo_koda_namena'      => 'GDSV',
@@ -48,7 +48,6 @@ function valid_input(array $overrides = []): array {
     'placilo_referenca_oznaka' => 'SI',
     'placilo_referenca_model'  => '00',
     'placilo_referenca_sklic'  => '12345',
-    'placilo_referenca'        => 'SI0012345',
     'placnik_naziv'            => 'Test Plačnik',
     'placnik_naslov'           => 'Plačnikova ulica 1',
     'placnik_kraj'             => '1000 Ljubljana',
@@ -57,6 +56,15 @@ function valid_input(array $overrides = []): array {
     'prejemnik_kraj'           => '2000 Maribor',
     'prejemnik_iban'           => 'SI56 0203 6025 3863 406',
   ], $overrides);
+
+  // referenco sestavimo iz komponent (kot frontend/backend), razen če je eksplicitno podana
+  if (!array_key_exists('placilo_referenca', $overrides)) {
+    $data['placilo_referenca'] = strtoupper($data['placilo_referenca_oznaka'])
+      . $data['placilo_referenca_model']
+      . $data['placilo_referenca_sklic'];
+  }
+
+  return $data;
 }
 
 function assert_status(array $res, int $expected): void {
@@ -302,6 +310,17 @@ test('Znesek 1234.56 → 00000123456 v raw', function () {
   $res = post_json(valid_input(['placilo_znesek' => '1234.56']));
   assert_status($res, 200);
   assert_raw_line($res, 8, '00000123456', 'znesek (1234.56 → centi)');
+});
+
+test('Referenca — backend jo sestavi iz komponent (oznaka+model+sklic)', function () {
+  $res = post_json(valid_input([
+    'placilo_referenca_oznaka' => 'si',        // male črke → normalizacija v velike
+    'placilo_referenca_model'  => '00',
+    'placilo_referenca_sklic'  => '98765',
+    'placilo_referenca'        => 'PONAREJENA', // vrednost s frontenda mora biti ignorirana
+  ]));
+  assert_status($res, 200);
+  assert_raw_line($res, 15, 'SI0098765', 'placilo_referenca (sestavljena na backendu)');
 });
 
 // -------------------------------------------------------

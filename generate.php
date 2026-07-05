@@ -79,6 +79,11 @@ if (!empty($errors)) {
   exit;
 }
 
+/* --- REFERENCA --- */
+$referenca = strtoupper($input['placilo_referenca_oznaka'])
+  . $input['placilo_referenca_model']
+  . $input['placilo_referenca_sklic'];
+
 /* --- PAYLOAD --- */
 $lines = [
   /*  1. Identifikator       */  "UPNQR",
@@ -96,7 +101,7 @@ $lines = [
   /* 13. Namen plačila       */  $input['placilo_namen'] ?? "",
   /* 14. Rok plačila         */  $input['placilo_datum'],
   /* 15. IBAN prejemnika     */  $iban,
-  /* 16. Referenca plačila   */  $input['placilo_referenca'] ?? "",
+  /* 16. Referenca plačila   */  $referenca,
   /* 17. Prejemnik – naziv   */  $input['prejemnik_naziv'],
   /* 18. Prejemnik – naslov  */  $input['prejemnik_naslov'],
   /* 19. Prejemnik – kraj    */  $input['prejemnik_kraj'],
