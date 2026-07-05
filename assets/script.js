@@ -113,6 +113,9 @@ async function generate (event) {
 
   // DATUM
   if (!data.placilo_datum) addError('placilo_datum', 'Datum plačila je obvezen.');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (new Date(data.placilo_datum) < today) addError('placilo_datum', 'Datum plačila ne sme biti v preteklosti.');
 
   // OBVEZNA POLJA
   if (!data.placilo_koda_namena) addError('placilo_koda_namena', 'Koda namena je obvezna.');

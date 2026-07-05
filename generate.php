@@ -8,39 +8,50 @@ use Endroid\QrCode\Writer\PngWriter;
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
-// header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-// header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!$input) {
   http_response_code(400);
-  echo json_encode(['error' => 'Neveljaven JSON.']);
+  json_respond(['error' => 'Neveljaven JSON.']);
   exit;
 }
 
 /* --- VALIDACIJA --- */
 if (!preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek'] ?? '')) {
-  echo json_encode(['error' => 'Neveljaven znesek.', 'id' => 'placilo_znesek']);
+  json_respond(['error' => 'Neveljaven znesek.', 'id' => 'placilo_znesek']);
   exit;
 }
 
 if (!empty($input['placilo_referenca']) &&
     !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca'])) {
-  echo json_encode(['error' => 'Neveljavna referenca.', 'id' => 'placilo_referenca']);
+  json_respond(['error' => 'Neveljavna referenca.', 'id' => 'placilo_referenca']);
   exit;
 }
 
 if (!preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $input['placilo_datum'] ?? '')) {
-  echo json_encode(['error' => 'Neveljaven datum.', 'id' => 'placilo_datum']);
+  json_respond(['error' => 'Neveljaven datum.', 'id' => 'placilo_datum']);
+  exit;
+}
+
+$datumParts = explode('.', $input['placilo_datum']);
+$datumTs = mktime(0, 0, 0, (int)$datumParts[1], (int)$datumParts[0], (int)$datumParts[2]);
+if ($datumTs < mktime(0, 0, 0)) {
+  json_respond(['error' => 'Datum plačila [ ' . $input['placilo_datum'] . ' ] ne sme biti v preteklosti.', 'id' => 'placilo_datum']);
   exit;
 }
 
 if (!preg_match('/^SI\d{17}$/', $input['prejemnik_iban'] ?? '')) {
-  echo json_encode(['error' => 'Neveljaven IBAN.', 'id' => 'prejemnik_iban']);
+  json_respond(['error' => 'Neveljaven IBAN.', 'id' => 'prejemnik_iban']);
   exit;
 }
 
 /* --- HELPERS --- */
+function json_respond(array $data): void {
+  echo json_encode($data, JSON_UNESCAPED_UNICODE);
+}
+
 function upnZnesek($eur) {
   $centi = (int) round(bcmul((string)$eur, '100', 2));
   return str_pad((string)$centi, 11, '0', STR_PAD_LEFT);
@@ -83,7 +94,7 @@ $result = (new Builder(
   margin: 0
 ))->build();
 
-echo json_encode([
+json_respond([
   'qr'  => $result->getDataUri(),
   'raw' => $payload
-], JSON_UNESCAPED_UNICODE);
+]);
