@@ -25,6 +25,7 @@ test:
 	@echo "$(Q)🚀 Zaganjam testni server na :$(TEST_PORT)...$(NC)"
 	@php -S localhost:$(TEST_PORT) > /dev/null 2>&1 & echo $$! > /tmp/upn-test-server.pid; \
 	sleep 1; \
+	open http://localhost:$(TEST_PORT)?test=true; \
 	TEST_PORT=$(TEST_PORT) php test/test.php; TEST_EXIT=$$?; \
 	kill $$(cat /tmp/upn-test-server.pid) 2>/dev/null; \
 	rm -f /tmp/upn-test-server.pid; \

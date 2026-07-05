@@ -22,10 +22,6 @@
 
 </head>
 <body>
-  <?php
-    // header("Location: https://www.primaprodukcija.si/");
-    // exit();
-  ?>
 
 <h1>UPN QR koda</h1>
 
@@ -234,6 +230,10 @@
     <pre id="placeholder-result">n/a</pre>
   </div>
 </div>
+
+<?php if (str_contains($_SERVER['HTTP_HOST'], 'localhost') && ($_GET['test'] ?? null) === 'true') : ?>
+  <script src="./test/test.js" defer></script>
+<?php endif; ?>
 
 </body>
 </html>
