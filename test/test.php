@@ -179,6 +179,18 @@ test('upnZnesek — raw vsebuje 11-mestni znesek', function () {
     throw new RuntimeException("raw ne vsebuje 11-mestnega zneska");
 });
 
+test('Znesek z eno decimalko (10.5) → napaka', function () {
+  $res = post_json(valid_input(['placilo_znesek' => '10.5']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_znesek');
+});
+
+test('Znesek brez decimalk (10) → napaka', function () {
+  $res = post_json(valid_input(['placilo_znesek' => '10']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_znesek');
+});
+
 /* ═══ DATUM ════════════════════════════════════════════ */
 
 test('Datum manjka → napaka', function () {
@@ -197,6 +209,56 @@ test('Datum v preteklosti → napaka', function () {
   $res = post_json(valid_input(['placilo_datum' => '01.01.2020']));
   assert_status($res, 422);
   assert_has_error($res, 'placilo_datum');
+});
+
+test('Datum = danes → 200 (mejni primer notPast)', function () {
+  $today = (new DateTime('today'))->format('d.m.Y');
+  $res = post_json(valid_input(['placilo_datum' => $today]));
+  assert_status($res, 200);
+});
+
+test('Datum neobstoječ (32.13.2030) → napaka', function () {
+  $res = post_json(valid_input(['placilo_datum' => '32.13.2030']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_datum');
+});
+
+/* ═══ KODA NAMENA ══════════════════════════════════════ */
+
+test('Koda namena napačna dolžina (GDS) → napaka', function () {
+  $res = post_json(valid_input(['placilo_koda_namena' => 'GDS']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_koda_namena');
+});
+
+test('Koda namena nedovoljeni znaki (GD12) → napaka', function () {
+  $res = post_json(valid_input(['placilo_koda_namena' => 'GD12']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_koda_namena');
+});
+
+test('Koda namena male črke (gdsv) → 200 (uppercase normalizacija)', function () {
+  $res = post_json(valid_input(['placilo_koda_namena' => 'gdsv']));
+  assert_status($res, 200);
+});
+
+/* ═══ NAMEN PLAČILA ════════════════════════════════════ */
+
+test('Namen predolg (43 znakov) → napaka', function () {
+  $res = post_json(valid_input(['placilo_namen' => str_repeat('A', 43)]));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_namen');
+});
+
+test('Namen točno 42 znakov → 200 (mejni primer maxlen)', function () {
+  $res = post_json(valid_input(['placilo_namen' => str_repeat('A', 42)]));
+  assert_status($res, 200);
+});
+
+test('Namen z znakom izven ISO-8859-2 (Ж) → napaka', function () {
+  $res = post_json(valid_input(['placilo_namen' => 'Test Ж plačilo']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_namen');
 });
 
 /* ═══ OBVEZNA POLJA ════════════════════════════════════ */
@@ -234,6 +296,37 @@ test('Referenca — backend jo sestavi iz komponent (oznaka+model+sklic)', funct
   assert_raw_line($res, 15, 'SI0098765', 'placilo_referenca (sestavljena na backendu)');
 });
 
+test('Oznaka reference neveljavna (XX) → napaka', function () {
+  $res = post_json(valid_input(['placilo_referenca_oznaka' => 'XX']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_referenca_oznaka');
+});
+
+test('Oznaka reference RF → 200', function () {
+  $res = post_json(valid_input(['placilo_referenca_oznaka' => 'RF']));
+  assert_status($res, 200);
+});
+
+test('Model reference neveljaven (1) → napaka pod placilo_referenca_oznaka', function () {
+  $res = post_json(valid_input(['placilo_referenca_model' => '1']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_referenca_oznaka');
+});
+
+test('Model 99 + prazen sklic → 200 (optionalIfModel)', function () {
+  $res = post_json(valid_input([
+    'placilo_referenca_model' => '99',
+    'placilo_referenca_sklic' => '',
+  ]));
+  assert_status($res, 200);
+});
+
+test('Sklic predolg (23 znakov) → napaka pod placilo_referenca_oznaka', function () {
+  $res = post_json(valid_input(['placilo_referenca_sklic' => str_repeat('1', 23)]));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_referenca_oznaka');
+});
+
 /* ═══ IBAN ═════════════════════════════════════════════ */
 
 test('IBAN manjka → napaka', function () {
@@ -261,6 +354,28 @@ test('IBAN s presledki → normaliziran v raw', function () {
   $res = post_json(valid_input());
   assert_status($res, 200);
   assert_raw_line($res, 14, 'SI56020360253863406', 'prejemnik_iban (normaliziran)');
+});
+
+/* ═══ PLAČNIK / PREJEMNIK — DOLŽINE IN KODIRANJE ═══════ */
+
+test('Naziv prejemnika predolg (34 znakov) → napaka', function () {
+  $res = post_json(valid_input(['prejemnik_naziv' => str_repeat('A', 34)]));
+  assert_status($res, 422);
+  assert_has_error($res, 'prejemnik_naziv');
+});
+
+test('Naziv prejemnika z znakom izven ISO-8859-2 (Ж) → napaka', function () {
+  $res = post_json(valid_input(['prejemnik_naziv' => 'Prejemnik Ж']));
+  assert_status($res, 422);
+  assert_has_error($res, 'prejemnik_naziv');
+});
+
+test('Neobvezni polji plačnika prazni (naslov, kraj) → 200', function () {
+  $res = post_json(valid_input([
+    'placnik_naslov' => '',
+    'placnik_kraj'   => '',
+  ]));
+  assert_status($res, 200);
 });
 
 /* ═══ KOMBINIRANE NAPAKE ═══════════════════════════════ */
@@ -303,6 +418,33 @@ test('Vsa polja napačna → vse napake prijavljene', function () {
   assert_has_error($res, 'placnik_naziv');
   assert_has_error($res, 'prejemnik_naziv');
   assert_has_error($res, 'prejemnik_iban');
+});
+
+test('Eno polje — več napak hkrati (koda: dolžina + vzorec)', function () {
+  // 'g1' → uppercase 'G1': exactlen (≠4) IN pattern (^[A-Z]{4}$) se oba sprožita
+  $res = post_json(valid_input(['placilo_koda_namena' => 'g1']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_koda_namena');
+  $count = count($res['body']['errors']['placilo_koda_namena'] ?? []);
+  $ok    = $count >= 2;
+  echo "  NAPAKE:     placilo_koda_namena → $count sporočil " . ($ok ? "\033[32m✓ (≥2)\033[0m" : "\033[31m✗ (pričakovano ≥2)\033[0m") . "\n";
+  if (!$ok)
+    throw new RuntimeException("Pričakovano ≥2 napaki na polju, dobim $count. Body: " . json_encode($res['body']));
+});
+
+test('errorKey — oznaka+model+sklic napake združene pod placilo_referenca_oznaka', function () {
+  $res = post_json(valid_input([
+    'placilo_referenca_oznaka' => 'XX',    // enum napaka (lasten ključ)
+    'placilo_referenca_model'  => 'AB',    // pattern napaka → errorKey oznaka
+    'placilo_referenca_sklic'  => 'a!@#',  // pattern napaka → errorKey oznaka
+  ]));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_referenca_oznaka');
+  $count = count($res['body']['errors']['placilo_referenca_oznaka'] ?? []);
+  $ok    = $count >= 2;
+  echo "  NAPAKE:     placilo_referenca_oznaka → $count sporočil " . ($ok ? "\033[32m✓ (≥2)\033[0m" : "\033[31m✗ (pričakovano ≥2)\033[0m") . "\n";
+  if (!$ok)
+    throw new RuntimeException("Pričakovano ≥2 združeni napaki, dobim $count. Body: " . json_encode($res['body']));
 });
 
 /* ═══ USPEŠEN VNOS / PAYLOAD ═══════════════════════════ */
