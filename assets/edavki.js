@@ -49,6 +49,12 @@
       })
       const result = await response.json();
 
+      // RATE LIMIT (429)
+      if (response.status === 429) {
+        alert(result.error);
+        throw new Error(result.error);
+      }
+
       if (!result.success) {
         alert(result.message);
         throw new Error(result.message);

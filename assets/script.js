@@ -175,8 +175,15 @@ async function generate (event) {
   });
 
   const json = await res.json();
-  
+
   await new Promise(resolve => setTimeout(resolve, 1000 * 1));
+
+  // RATE LIMIT (429)
+  if (res.status === 429) {
+    alert(json.error);
+    $('#placeholder-link').classList.remove('loading');
+    return;
+  }
 
   if (json.errors) {
     Object.entries(json.errors).forEach(([field, msgs]) => {

@@ -47,12 +47,14 @@ build:
 		-x "./Makefile" \
 			"./README.md" \
 			"./.gitignore" \
+			"./_PLAN_validacija.md" \
 			"./avg-temp.xlsx" \
 			"./.git/*" \
-			"./.vscode/*" \
+			"./.vscode" "./.vscode/*" \
 			"./.claude/*" \
 			"./test/*" \
-			"./_deploy/*"
+			"./_deploy/*" \
+			"./.ratelimit/*.json"
 
 	@echo "\n$(OK)✅ ZIP file '$(ZIP)' created$(NC)\n"
 

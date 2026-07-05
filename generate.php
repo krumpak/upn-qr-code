@@ -11,6 +11,10 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
+/* --- RATE LIMIT --- */
+require __DIR__ . '/ratelimit.php';
+rate_limit_check();
+
 /* --- HELPERS --- */
 function json_respond(array $data, int $status = 200): void {
   http_response_code($status);

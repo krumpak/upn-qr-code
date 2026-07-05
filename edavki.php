@@ -4,9 +4,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   define('AUTH_TOKEN', '$1RSoqA^ZTGmt^qK9ulG0r#X3eSPMn$EOilLh^R@zI6zfrFHQV');
 
   header('Content-Type: application/json; charset=utf-8');
-  header('Access-Control-Allow-Origin: *'); 
+  header('Access-Control-Allow-Origin: *');
   header('Access-Control-Allow-Methods: POST');
   header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+  // rate limit (per-IP, samo produkcija)
+  require __DIR__ . '/ratelimit.php';
+  rate_limit_check();
 
   // get bearer token from header
   $token = $_SERVER['HTTP_AUTHORIZATION'];
