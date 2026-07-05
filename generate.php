@@ -11,50 +11,51 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-$input = json_decode(file_get_contents('php://input'), true);
-if (!$input) {
-  http_response_code(400);
-  json_respond(['error' => 'Neveljaven JSON.']);
-  exit;
-}
-
-/* --- VALIDACIJA --- */
-if (!preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek'] ?? '')) {
-  json_respond(['error' => 'Neveljaven znesek.', 'id' => 'placilo_znesek']);
-  exit;
-}
-
-if (!empty($input['placilo_referenca']) &&
-    !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca'])) {
-  json_respond(['error' => 'Neveljavna referenca.', 'id' => 'placilo_referenca']);
-  exit;
-}
-
-if (!preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $input['placilo_datum'] ?? '')) {
-  json_respond(['error' => 'Neveljaven datum.', 'id' => 'placilo_datum']);
-  exit;
-}
-
-$datumParts = explode('.', $input['placilo_datum']);
-$datumTs = mktime(0, 0, 0, (int)$datumParts[1], (int)$datumParts[0], (int)$datumParts[2]);
-if ($datumTs < mktime(0, 0, 0)) {
-  json_respond(['error' => 'Datum plačila [ ' . $input['placilo_datum'] . ' ] ne sme biti v preteklosti.', 'id' => 'placilo_datum']);
-  exit;
-}
-
-if (!preg_match('/^SI\d{17}$/', $input['prejemnik_iban'] ?? '')) {
-  json_respond(['error' => 'Neveljaven IBAN.', 'id' => 'prejemnik_iban']);
-  exit;
-}
-
 /* --- HELPERS --- */
-function json_respond(array $data): void {
+function json_respond(array $data, int $status = 200): void {
+  http_response_code($status);
   echo json_encode($data, JSON_UNESCAPED_UNICODE);
 }
 
 function upnZnesek($eur) {
   $centi = (int) round(bcmul((string)$eur, '100', 2));
   return str_pad((string)$centi, 11, '0', STR_PAD_LEFT);
+}
+
+/* --- INPUT --- */
+$input = json_decode(file_get_contents('php://input'), true);
+if (!$input) {
+  json_respond(['error' => 'Neveljaven JSON.'], 400);
+  exit;
+}
+
+/* --- VALIDACIJA --- */
+if (!preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek'] ?? '')) {
+  json_respond(['error' => 'Neveljaven znesek.', 'id' => 'placilo_znesek'], 422);
+  exit;
+}
+
+if (!empty($input['placilo_referenca']) &&
+    !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca'])) {
+  json_respond(['error' => 'Neveljavna referenca.', 'id' => 'placilo_referenca'], 422);
+  exit;
+}
+
+$datum = DateTime::createFromFormat('d.m.Y', $input['placilo_datum'] ?? '');
+if (!$datum || $datum->format('d.m.Y') !== ($input['placilo_datum'] ?? '')) {
+  json_respond(['error' => 'Neveljaven datum.', 'id' => 'placilo_datum'], 422);
+  exit;
+}
+
+$datum->setTime(0, 0);
+if ($datum->getTimestamp() < (new DateTime('today'))->getTimestamp()) {
+  json_respond(['error' => 'Datum plačila [ ' . $input['placilo_datum'] . ' ] ne sme biti v preteklosti.', 'id' => 'placilo_datum'], 422);
+  exit;
+}
+
+if (!preg_match('/^SI\d{17}$/', $input['prejemnik_iban'] ?? '')) {
+  json_respond(['error' => 'Neveljaven IBAN.', 'id' => 'prejemnik_iban'], 422);
+  exit;
 }
 
 /* --- PAYLOAD --- */

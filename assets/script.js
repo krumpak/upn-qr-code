@@ -112,10 +112,13 @@ async function generate (event) {
   else if (!/^\d+(\.\d{1,2})?$/.test(znesek)) addError('placilo_znesek', 'Znesek ni v pravilni obliki.');
 
   // DATUM
-  if (!data.placilo_datum) addError('placilo_datum', 'Datum plačila je obvezen.');
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (new Date(data.placilo_datum) < today) addError('placilo_datum', 'Datum plačila ne sme biti v preteklosti.');
+  if (!data.placilo_datum) {
+    addError('placilo_datum', 'Datum plačila je obvezen.');
+  } else {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(data.placilo_datum) < today) addError('placilo_datum', 'Datum plačila ne sme biti v preteklosti.');
+  }
 
   // OBVEZNA POLJA
   if (!data.placilo_koda_namena) addError('placilo_koda_namena', 'Koda namena je obvezna.');
