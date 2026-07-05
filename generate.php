@@ -95,7 +95,7 @@ $lines = [
   /* 12. Koda namena         */  $input['placilo_koda_namena'],
   /* 13. Namen plačila       */  $input['placilo_namen'] ?? "",
   /* 14. Rok plačila         */  $input['placilo_datum'],
-  /* 15. IBAN prejemnika     */  $input['prejemnik_iban'],
+  /* 15. IBAN prejemnika     */  $iban,
   /* 16. Referenca plačila   */  $input['placilo_referenca'] ?? "",
   /* 17. Prejemnik – naziv   */  $input['prejemnik_naziv'],
   /* 18. Prejemnik – naslov  */  $input['prejemnik_naslov'],

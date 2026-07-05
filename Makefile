@@ -14,6 +14,7 @@ ENV_BAK := env.bak.txt
 ENV_EXAMPLE := .env.example
 ZIP := _deploy.zip
 PORT := 9003
+TEST_PORT := 9099
 
 watch:
 	@echo "🌐 Starting local server on http://localhost:${PORT}"
@@ -21,7 +22,14 @@ watch:
 	php -S localhost:${PORT}
 
 test:
-	@php test/test.php
+	@echo "$(Q)🚀 Zaganjam testni server na :$(TEST_PORT)...$(NC)"
+	@php -S localhost:$(TEST_PORT) > /dev/null 2>&1 & echo $$! > /tmp/upn-test-server.pid; \
+	sleep 1; \
+	TEST_PORT=$(TEST_PORT) php test/test.php; TEST_EXIT=$$?; \
+	kill $$(cat /tmp/upn-test-server.pid) 2>/dev/null; \
+	rm -f /tmp/upn-test-server.pid; \
+	echo "$(Q)🛑 Ugašam testni server na :$(TEST_PORT)...$(NC)" \
+	exit $$TEST_EXIT
 
 install:
 	rm -rf ./vendor
