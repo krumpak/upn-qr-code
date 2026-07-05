@@ -72,6 +72,9 @@
           placilo_namen: val.namen,
           placilo_koda_namena: val.koda,
           placilo_referenca: val.referenca,
+          placilo_referenca_oznaka: val.referenca.slice(0, 2),
+          placilo_referenca_model:  val.referenca.slice(2, 4),
+          placilo_referenca_sklic:  val.referenca.slice(4),
           placilo_znesek: val.znesek,
           placnik_kraj: val.placnik.kraj,
           placnik_naslov: val.placnik.naslov,
@@ -133,6 +136,8 @@
       setTimeout(() => {}, 100)
 
     } catch (err) {
+      $('#download').classList.add('hidden');
+      $('#result').innerHTML = '';
       console.error(err);
     }
   });
