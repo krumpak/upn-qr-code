@@ -13,22 +13,28 @@ Content-Type: application/json
 
 Telo zahtevka je JSON objekt z naslednjimi polji:
 
-| Polje | Obvezno | Pravila / oblika | Opis |
-|---|---|---|---|
-| `placilo_znesek` | ✅ | `^\d+\.\d{2}$`, večji od `0`, največ `999999999.99` | Znesek v EUR z dvema decimalkama (npr. `10.00`). Pretvori se v 11-mestni zapis v centih (zato zgornja meja 999.999.999,99 EUR). |
-| `placilo_datum` | ✅ | oblika `d.m.Y`, ne v preteklosti | Rok plačila (npr. `31.12.2026`). |
-| `placilo_koda_namena` | ✅ | — | 4-črkovna koda namena (npr. `GDSV`). |
-| `placilo_namen` | ✅ | — | Namen plačila (prosti tekst). |
-| `placilo_referenca_oznaka` | ✅ | — | Oznaka reference (npr. `SI`). Normalizira se v velike črke. |
-| `placilo_referenca_model` | ✅ | — | Model reference (npr. `00`). |
-| `placilo_referenca_sklic` | ✅ | `^[A-Z0-9\-]+$` | Sklic — dovoljene le črke, številke in vezaji (`-`). |
-| `placnik_naziv` | ✅ | — | Naziv plačnika. |
-| `placnik_naslov` | ➖ | — | Naslov plačnika. |
-| `placnik_kraj` | ➖ | — | Kraj plačnika. |
-| `prejemnik_naziv` | ✅ | — | Naziv prejemnika. |
-| `prejemnik_naslov` | ➖ | — | Naslov prejemnika. |
-| `prejemnik_kraj` | ➖ | — | Kraj prejemnika. |
-| `prejemnik_iban` | ✅ | `^SI\d{17}$` | IBAN prejemnika. Presledki se odstranijo, črke se pretvorijo v velike (`SI56 0203 ...` → `SI56020360...`). |
+| Polje | Obvezno | Pravila / oblika | Max | Opis |
+|---|---|---|---|---|
+| `placilo_znesek` | ✅ | `^\d+\.\d{2}$`, večji od `0`, največ `999999999.99` | — | Znesek v EUR z dvema decimalkama (npr. `10.00`). Pretvori se v 11-mestni zapis v centih (zato zgornja meja 999.999.999,99 EUR). |
+| `placilo_datum` | ✅ | oblika `d.m.Y` (`DD.MM.YYYY`), ne v preteklosti | — | Rok plačila (npr. `31.12.2026`). |
+| `placilo_koda_namena` | ✅ | `^[A-Z]{4}$` | 4 | Koda namena — 4 velike črke A-Z (npr. `GDSV`). |
+| `placilo_namen` | ✅ | — | 42 | Namen plačila (prosti tekst). |
+| `placilo_referenca_oznaka` | ✅ | `SI` ali `RF` | 2 | Oznaka reference. Normalizira se v velike črke. |
+| `placilo_referenca_model` | ✅ | `^\d{2}$` | 2 | Model reference (npr. `00`). |
+| `placilo_referenca_sklic` | ➖¹ | `^[A-Z0-9\-]+$` | 22 | Sklic — dovoljene le črke, številke in vezaji (`-`). ¹Obvezen, razen pri modelu `99`. |
+| `placnik_naziv` | ✅ | — | 33 | Naziv plačnika. (Standard ga ne zahteva, a je pri nas obvezen.) |
+| `placnik_naslov` | ➖ | — | 33 | Naslov plačnika. |
+| `placnik_kraj` | ➖ | — | 33 | Kraj plačnika. |
+| `prejemnik_naziv` | ✅ | — | 33 | Naziv prejemnika. |
+| `prejemnik_naslov` | ✅ | — | 33 | Naslov prejemnika. |
+| `prejemnik_kraj` | ✅ | — | 33 | Kraj prejemnika. |
+| `prejemnik_iban` | ✅ | `^SI\d{17}$` | — | IBAN prejemnika. Presledki se odstranijo, črke se pretvorijo v velike (`SI56 0203 ...` → `SI56020360...`). |
+
+> **Globalno (vsa besedilna polja):** vodilni in sledeči presledki se odstranijo (trim);
+> dovoljeni so le znaki iz nabora **ISO-8859-2** (v tem naboru se kodira QR).
+>
+> **Dolžine in obveznost polj** sledijo tehničnemu standardu UPN QR (ZBS) — glej [Viri](#viri).
+> Izjema po naši izbiri: `placnik_naziv` je obvezen (standard ga ne zahteva).
 
 > **Referenca:** polje `placilo_referenca` se **ne** pošilja — backend jo sam sestavi iz
 > `placilo_referenca_oznaka` + `placilo_referenca_model` + `placilo_referenca_sklic`
@@ -120,3 +126,16 @@ xdebug.client_port=9003
   ]
 }
 ```
+
+---
+
+## Viri
+
+Pravila validacije (dolžine polj, obveznost, oblike) sledijo uradnemu tehničnemu standardu
+UPN QR Združenja bank Slovenije (ZBS):
+
+- [EN Tehnični standard UPN QR (ZBS, PDF)](https://www.zbs-giz.si/wp-content/uploads/2021/10/EN_Tehnicni_standard_UPN_QR.pdf)
+- [Standardi in priročniki (ZBS-GIZ)](https://www.zbs-giz.si/standardi/)
+- [Tehnični standard UPN QR (upn-qr.si)](https://upn-qr.si/sl/tehnicni-standard)
+- [Navodilo za pripravo izpisa UPN QR za programerje (ZBS, PDF)](https://www.simple-shop.si/bt/index.php?getfile=270)
+- [UPN QR – navodila za izpolnjevanje (Racunovodja.com)](https://www.racunovodja.com/clanki.asp?clanek=9691)
