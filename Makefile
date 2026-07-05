@@ -20,6 +20,9 @@ watch:
 	@open "http://localhost:${PORT}"
 	php -S localhost:${PORT}
 
+test:
+	@php test/test.php
+
 install:
 	rm -rf ./vendor
 	composer install
@@ -111,4 +114,4 @@ remote:
 		sleep 0.25; \
 		echo -e "\n$(OK)--- ✅ Done ---$(NC)\n"'
 
-.PHONY: install watch build deploy remote
+.PHONY: install watch test build deploy remote
