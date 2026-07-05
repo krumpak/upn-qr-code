@@ -81,6 +81,19 @@ Telo zahtevka je JSON objekt z naslednjimi polji:
 }
 ```
 
+### Validacija
+
+Vsa pravila (obveznost polj, dolžine, oblike, trim robnih presledkov, nabor **ISO-8859-2**)
+izhajajo iz **enega vira** — `validation.php`. Ta se deli med vse tri nivoje:
+
+- **PHP** (server-side): `generate.php` → `upn_validate()`;
+- **HTML**: `index.php` → `upn_attrs()` (atributi `required`/`maxlength`/`minlength`/`step`/`min`/`max`);
+- **JS** (client-side): `assets/script.js` → generična zanka čez `window.UPN_RULES`
+  (pravila prenesena iz PHP-ja prek `json_encode(upn_rules())`).
+
+S tem so client, HTML in strežnik vedno usklajeni. Preverba nabora ISO-8859-2 se izvaja le na
+strežniku. Pravila sledijo tehničnemu standardu UPN QR (ZBS) — glej [Viri](#viri).
+
 ### Testi
 
 ```

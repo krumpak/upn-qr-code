@@ -41,11 +41,16 @@ if (!empty($errors)) {
   exit;
 }
 
+/* --- NORMALIZACIJA (trim vseh besedilnih polj — enako kot v upn_validate) --- */
+foreach ($input as $k => $v) {
+  if (is_string($v)) $input[$k] = trim($v);
+}
+
 /* --- REFERENCA --- */
 $iban     = upn_normalize_iban($input['prejemnik_iban'] ?? '');
-$referenca = strtoupper(trim($input['placilo_referenca_oznaka']))
-  . trim($input['placilo_referenca_model'])
-  . trim($input['placilo_referenca_sklic']);
+$referenca = strtoupper($input['placilo_referenca_oznaka'])
+  . $input['placilo_referenca_model']
+  . $input['placilo_referenca_sklic'];
 
 /* --- PAYLOAD --- */
 $lines = [

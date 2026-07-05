@@ -390,6 +390,18 @@ test('Neobvezni polji plačnika prazni (naslov, kraj) → 200', function () {
   assert_status($res, 200);
 });
 
+test('Prejemnik naslov prazen → napaka (obvezno)', function () {
+  $res = post_json(valid_input(['prejemnik_naslov' => '']));
+  assert_status($res, 422);
+  assert_has_error($res, 'prejemnik_naslov');
+});
+
+test('Prejemnik kraj prazen → napaka (obvezno)', function () {
+  $res = post_json(valid_input(['prejemnik_kraj' => '']));
+  assert_status($res, 422);
+  assert_has_error($res, 'prejemnik_kraj');
+});
+
 /* ═══ KOMBINIRANE NAPAKE ═══════════════════════════════ */
 
 test('Več napačnih polj hkrati → vse napake prijavljene', function () {
@@ -492,6 +504,12 @@ test('Vsa polja pravilno umeščena v raw payload', function () {
   assert_raw_line($res, 16, $in['prejemnik_naziv'],     'prejemnik_naziv');
   assert_raw_line($res, 17, $in['prejemnik_naslov'],    'prejemnik_naslov');
   assert_raw_line($res, 18, $in['prejemnik_kraj'],      'prejemnik_kraj');
+});
+
+test('Robni presledki v besedilnem polju → trimano v raw', function () {
+  $res = post_json(valid_input(['placnik_naziv' => '  Test Plačnik  ']));
+  assert_status($res, 200);
+  assert_raw_line($res, 5, 'Test Plačnik', 'placnik_naziv (trimano)');
 });
 
 test('Kontrolna vsota — zadnja vrstica je 3-mestna', function () {
