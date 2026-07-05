@@ -41,6 +41,8 @@ build:
 			"./.gitignore" \
 			"./avg-temp.xlsx" \
 			"./.git/*" \
+			"./.vscode/*" \
+			"./.claude/*" \
 			"./test/*" \
 			"./_deploy/*"
 
