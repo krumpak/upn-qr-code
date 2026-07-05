@@ -106,52 +106,78 @@ async function generate (event) {
   const errors = {};
   const addError = (field, msg) => { (errors[field] ??= []).push(msg); };
 
-  // ZNESEK
-  // Payload ima znesek zapisan kot 11-mestno število centov → max 999.999.999,99 EUR.
-  const MAX_ZNESEK = 999999999.99;
-  const znesek = String(data.placilo_znesek).replace(',', '.');
+  // Pravila iz PHP-ja (validation.php → window.UPN_RULES); enotni vir resnice.
+  const RULES = window.UPN_RULES || {};
+  // Polja s posebno logiko obravnavamo ločeno; ostala gredo skozi generično zanko.
+  const BESPOKE = new Set(['placilo_znesek', 'placilo_datum', 'prejemnik_iban']);
+
+  // ZNESEK (posebna, prizanesljiva logika: dovoli 0–2 decimalki, normaliziraj s toFixed pred pošiljanjem)
+  const rZnesek = RULES.placilo_znesek || {};
+  const znesek = String(data.placilo_znesek).replace(',', '.').trim();
   if (!znesek || znesek === 'NaN') {
-    addError('placilo_znesek', 'Znesek je obvezen.');
+    addError('placilo_znesek', rZnesek.requiredMsg || 'Znesek je obvezen.');
   } else if (!/^\d+(\.\d{1,2})?$/.test(znesek)) {
-    addError('placilo_znesek', 'Znesek ni v pravilni obliki.');
+    addError('placilo_znesek', rZnesek.patternMsg || 'Znesek ni v pravilni obliki.');
   } else {
-    if (parseFloat(znesek) <= 0)
-      addError('placilo_znesek', 'Znesek mora biti večji od 0.');
-    if (parseFloat(znesek) > MAX_ZNESEK)
-      addError('placilo_znesek', 'Znesek je previsok (največ 999.999.999,99 EUR).');
+    if (parseFloat(znesek) <= (rZnesek.numGt ?? 0))
+      addError('placilo_znesek', rZnesek.numGtMsg || 'Znesek mora biti večji od 0.');
+    if (rZnesek.numLte != null && parseFloat(znesek) > rZnesek.numLte)
+      addError('placilo_znesek', rZnesek.numLteMsg || 'Znesek je previsok.');
   }
 
-  // DATUM
+  // DATUM (posebna logika: HTML input type=date daje obliko Y-m-d)
+  const rDatum = RULES.placilo_datum || {};
   if (!data.placilo_datum) {
-    addError('placilo_datum', 'Datum plačila je obvezen.');
+    addError('placilo_datum', rDatum.requiredMsg || 'Datum plačila je obvezen.');
   } else {
     const parsedDatum = new Date(data.placilo_datum);
-    if (isNaN(parsedDatum))
-      addError('placilo_datum', 'Datum plačila ni v pravilni obliki.');
-    if (!isNaN(parsedDatum)) {
+    if (isNaN(parsedDatum)) {
+      addError('placilo_datum', rDatum.formatMsg || 'Datum plačila ni v pravilni obliki.');
+    } else if (rDatum.notPast) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      if (parsedDatum < today) addError('placilo_datum', 'Datum plačila ne sme biti v preteklosti.');
+      if (parsedDatum < today)
+        addError('placilo_datum', rDatum.notPastMsg || 'Datum plačila ne sme biti v preteklosti.');
     }
   }
 
-  // OBVEZNA POLJA
-  if (!data.placilo_koda_namena) addError('placilo_koda_namena', 'Koda namena je obvezna.');
-  if (!data.placilo_namen) addError('placilo_namen', 'Namen plačila je obvezen.');
-  if (!data.placilo_referenca_oznaka) addError('placilo_referenca_oznaka', 'Oznaka reference je obvezna.');
-  if (!data.placilo_referenca_model) addError('placilo_referenca_oznaka', 'Model reference je obvezen.');
-  if (!data.placilo_referenca_sklic) addError('placilo_referenca_oznaka', 'Sklic je obvezen.');
-  if (!data.placnik_naziv) addError('placnik_naziv', 'Naziv plačnika je obvezen.');
-  if (!data.prejemnik_naziv) addError('prejemnik_naziv', 'Naziv prejemnika je obvezen.');
+  // GENERIČNA ZANKA — besedilna in referenčna polja (isti vrstni red kot PHP upn_validate:
+  // required → exactlen → maxlen → enum → pattern). ISO-8859-2 preverja le strežnik.
+  for (const [field, r] of Object.entries(RULES)) {
+    if (BESPOKE.has(field)) continue;
+    let val = String(data[field] ?? '').trim();
+    const errKey = r.errorKey || field;
+    if (r.uppercase) val = val.toUpperCase();
 
-  // REFERENCA SKLIC
-  if (data.placilo_referenca_sklic && !/^[A-Z0-9\-]+$/i.test(data.placilo_referenca_sklic))
-    addError('placilo_referenca_oznaka', 'Referenca lahko vsebuje le črke, številke in vezaje (-).');
+    let required = !!r.required;
+    if (required && r.optionalIfModel) {
+      const model = String(data.placilo_referenca_model ?? '').trim().toUpperCase();
+      if (model === r.optionalIfModel) required = false;
+    }
+    if (required && val === '') {
+      addError(errKey, r.requiredMsg || `${r.label} je obvezen/-na.`);
+      continue;
+    }
+    if (val === '') continue;
 
-  // IBAN
+    if (r.exactlen != null && val.length !== r.exactlen)
+      addError(errKey, `${r.label} mora biti dolg/-a točno ${r.exactlen} znakov.`);
+    if (r.maxlen != null && val.length > r.maxlen)
+      addError(errKey, `${r.label} je predolg/-a (največ ${r.maxlen} znakov).`);
+    if (Array.isArray(r.enum) && !r.enum.includes(val))
+      addError(errKey, r.enumMsg || `${r.label} ni veljavna vrednost.`);
+    if (r.pattern && !new RegExp(r.pattern, r.flags || '').test(val))
+      addError(errKey, r.patternMsg || `${r.label} ni v pravilni obliki.`);
+  }
+
+  // IBAN (posebna logika: normalizacija presledkov + velike črke, nato vzorec)
+  const rIban = RULES.prejemnik_iban || {};
   const iban = data.prejemnik_iban.replace(/\s+/g, '').toUpperCase();
-  if (!iban) addError('prejemnik_iban', 'IBAN je obvezen.');
-  else if (!/^SI\d{17}$/.test(iban)) addError('prejemnik_iban', 'IBAN ni pravilne oblike (SI + 17 številk).');
+  if (!iban) {
+    addError('prejemnik_iban', rIban.requiredMsg || 'IBAN je obvezen.');
+  } else if (rIban.pattern && !new RegExp(rIban.pattern).test(iban)) {
+    addError('prejemnik_iban', rIban.patternMsg || 'IBAN ni pravilne oblike (SI + 17 številk).');
+  }
 
   if (renderErrors(errors)) {
     $('#placeholder-link').classList.remove('loading');
