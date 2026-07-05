@@ -107,14 +107,18 @@ async function generate (event) {
   const addError = (field, msg) => { (errors[field] ??= []).push(msg); };
 
   // ZNESEK
+  // Payload ima znesek zapisan kot 11-mestno število centov → max 999.999.999,99 EUR.
+  const MAX_ZNESEK = 999999999.99;
   const znesek = String(data.placilo_znesek).replace(',', '.');
   if (!znesek || znesek === 'NaN') {
     addError('placilo_znesek', 'Znesek je obvezen.');
+  } else if (!/^\d+(\.\d{1,2})?$/.test(znesek)) {
+    addError('placilo_znesek', 'Znesek ni v pravilni obliki.');
   } else {
-    if (!/^\d+(\.\d{1,2})?$/.test(znesek))
-      addError('placilo_znesek', 'Znesek ni v pravilni obliki.');
-    if (/^\d+(\.\d{1,2})?$/.test(znesek) && parseFloat(znesek) <= 0)
+    if (parseFloat(znesek) <= 0)
       addError('placilo_znesek', 'Znesek mora biti večji od 0.');
+    if (parseFloat(znesek) > MAX_ZNESEK)
+      addError('placilo_znesek', 'Znesek je previsok (največ 999.999.999,99 EUR).');
   }
 
   // DATUM

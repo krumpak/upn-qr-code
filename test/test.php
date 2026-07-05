@@ -116,6 +116,8 @@ function test(string $name, callable $fn): void {
 
 // -------------------------------------------------------
 
+/* ═══ ZAHTEVEK (body / JSON) ═══════════════════════════ */
+
 test('Prazen body → 400', function () {
   $res = post('');
   assert_status($res, 400);
@@ -129,6 +131,8 @@ test('Neveljaven JSON → 400', function () {
   $res = post('{invalid}');
   assert_status($res, 400);
 });
+
+/* ═══ ZNESEK ═══════════════════════════════════════════ */
 
 test('Znesek manjka → napaka', function () {
   $res = post_json(valid_input(['placilo_znesek' => '']));
@@ -148,6 +152,35 @@ test('Znesek napačna oblika (abc) → napaka', function () {
   assert_has_error($res, 'placilo_znesek');
 });
 
+test('Znesek previsok (nad 999.999.999,99) → napaka', function () {
+  $res = post_json(valid_input(['placilo_znesek' => '1000000000.00']));
+  assert_status($res, 422);
+  assert_has_error($res, 'placilo_znesek');
+});
+
+test('Znesek na zgornji meji (999999999.99) → 200, 11-mestni znesek', function () {
+  $res = post_json(valid_input(['placilo_znesek' => '999999999.99']));
+  assert_status($res, 200);
+  assert_raw_line($res, 8, '99999999999', 'znesek (zgornja meja → centi)');
+});
+
+test('Znesek 1234.56 → 00000123456 v raw', function () {
+  $res = post_json(valid_input(['placilo_znesek' => '1234.56']));
+  assert_status($res, 200);
+  assert_raw_line($res, 8, '00000123456', 'znesek (1234.56 → centi)');
+});
+
+test('upnZnesek — raw vsebuje 11-mestni znesek', function () {
+  $res = post_json(valid_input(['placilo_znesek' => '10.00']));
+  assert_status($res, 200);
+  $hasZnesek = (bool)preg_match('/^\d{11}$/m', $res['body']['raw'] ?? '');
+  echo "  VSEBINA:    raw vsebuje 11-mestni znesek → " . ($hasZnesek ? "\033[32m✓ da\033[0m" : "\033[31m✗ ne\033[0m") . "\n";
+  if (!$hasZnesek)
+    throw new RuntimeException("raw ne vsebuje 11-mestnega zneska");
+});
+
+/* ═══ DATUM ════════════════════════════════════════════ */
+
 test('Datum manjka → napaka', function () {
   $res = post_json(valid_input(['placilo_datum' => '']));
   assert_status($res, 422);
@@ -166,6 +199,8 @@ test('Datum v preteklosti → napaka', function () {
   assert_has_error($res, 'placilo_datum');
 });
 
+/* ═══ OBVEZNA POLJA ════════════════════════════════════ */
+
 test('Manjkajoča obvezna polja → napake', function () {
   $res = post_json(valid_input([
     'placilo_koda_namena' => '',
@@ -180,11 +215,26 @@ test('Manjkajoča obvezna polja → napake', function () {
   assert_has_error($res, 'prejemnik_naziv');
 });
 
+/* ═══ REFERENCA ════════════════════════════════════════ */
+
 test('Referenca z neveljavnimi znaki → napaka', function () {
   $res = post_json(valid_input(['placilo_referenca_sklic' => 'abc!@#']));
   assert_status($res, 422);
   assert_has_error($res, 'placilo_referenca_oznaka');
 });
+
+test('Referenca — backend jo sestavi iz komponent (oznaka+model+sklic)', function () {
+  $res = post_json(valid_input([
+    'placilo_referenca_oznaka' => 'si',        // male črke → normalizacija v velike
+    'placilo_referenca_model'  => '00',
+    'placilo_referenca_sklic'  => '98765',
+    'placilo_referenca'        => 'PONAREJENA', // vrednost s frontenda mora biti ignorirana
+  ]));
+  assert_status($res, 200);
+  assert_raw_line($res, 15, 'SI0098765', 'placilo_referenca (sestavljena na backendu)');
+});
+
+/* ═══ IBAN ═════════════════════════════════════════════ */
 
 test('IBAN manjka → napaka', function () {
   $res = post_json(valid_input(['prejemnik_iban' => '']));
@@ -206,6 +256,14 @@ test('IBAN s presledki → normalizacija, QR generiran', function () {
   if (!$hasQr)
     throw new RuntimeException("Manjka 'qr' v responsu");
 });
+
+test('IBAN s presledki → normaliziran v raw', function () {
+  $res = post_json(valid_input());
+  assert_status($res, 200);
+  assert_raw_line($res, 14, 'SI56020360253863406', 'prejemnik_iban (normaliziran)');
+});
+
+/* ═══ KOMBINIRANE NAPAKE ═══════════════════════════════ */
 
 test('Več napačnih polj hkrati → vse napake prijavljene', function () {
   $res = post_json(valid_input([
@@ -247,14 +305,7 @@ test('Vsa polja napačna → vse napake prijavljene', function () {
   assert_has_error($res, 'prejemnik_iban');
 });
 
-test('upnZnesek — raw vsebuje 11-mestni znesek', function () {
-  $res = post_json(valid_input(['placilo_znesek' => '10.00']));
-  assert_status($res, 200);
-  $hasZnesek = (bool)preg_match('/^\d{11}$/m', $res['body']['raw'] ?? '');
-  echo "  VSEBINA:    raw vsebuje 11-mestni znesek → " . ($hasZnesek ? "\033[32m✓ da\033[0m" : "\033[31m✗ ne\033[0m") . "\n";
-  if (!$hasZnesek)
-    throw new RuntimeException("raw ne vsebuje 11-mestnega zneska");
-});
+/* ═══ USPEŠEN VNOS / PAYLOAD ═══════════════════════════ */
 
 test('Polni veljavni vnos → QR in raw', function () {
   $res = post_json(valid_input());
@@ -289,12 +340,6 @@ test('Vsa polja pravilno umeščena v raw payload', function () {
   assert_raw_line($res, 18, $in['prejemnik_kraj'],      'prejemnik_kraj');
 });
 
-test('IBAN s presledki → normaliziran v raw', function () {
-  $res = post_json(valid_input());
-  assert_status($res, 200);
-  assert_raw_line($res, 14, 'SI56020360253863406', 'prejemnik_iban (normaliziran)');
-});
-
 test('Kontrolna vsota — zadnja vrstica je 3-mestna', function () {
   $res = post_json(valid_input());
   assert_status($res, 200);
@@ -304,23 +349,6 @@ test('Kontrolna vsota — zadnja vrstica je 3-mestna', function () {
   echo "  VSEBINA:    kontrolna vsota '$checksum' → " . ($ok ? "\033[32m✓ 3-mestna\033[0m" : "\033[31m✗ napačna\033[0m") . "\n";
   if (!$ok)
     throw new RuntimeException("Kontrolna vsota ni 3-mestna: '$checksum'");
-});
-
-test('Znesek 1234.56 → 00000123456 v raw', function () {
-  $res = post_json(valid_input(['placilo_znesek' => '1234.56']));
-  assert_status($res, 200);
-  assert_raw_line($res, 8, '00000123456', 'znesek (1234.56 → centi)');
-});
-
-test('Referenca — backend jo sestavi iz komponent (oznaka+model+sklic)', function () {
-  $res = post_json(valid_input([
-    'placilo_referenca_oznaka' => 'si',        // male črke → normalizacija v velike
-    'placilo_referenca_model'  => '00',
-    'placilo_referenca_sklic'  => '98765',
-    'placilo_referenca'        => 'PONAREJENA', // vrednost s frontenda mora biti ignorirana
-  ]));
-  assert_status($res, 200);
-  assert_raw_line($res, 15, 'SI0098765', 'placilo_referenca (sestavljena na backendu)');
 });
 
 // -------------------------------------------------------

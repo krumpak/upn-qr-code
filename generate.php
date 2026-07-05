@@ -33,13 +33,20 @@ if (!$input) {
 $errors = [];
 
 // ZNESEK
+// Payload ima znesek zapisan kot 11-mestno število centov → max 999.999.999,99 EUR.
+$maxZnesek = 999999999.99;
 if (!($input['placilo_znesek'] ?? '')) {
   $errors['placilo_znesek'][] = 'Znesek je obvezen.';
 } else {
-  if (!preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek']))
+  $znesekValid = (bool)preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek']);
+  if (!$znesekValid) {
     $errors['placilo_znesek'][] = 'Znesek ni v pravilni obliki.';
-  if (preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek']) && (float)$input['placilo_znesek'] <= 0)
-    $errors['placilo_znesek'][] = 'Znesek mora biti večji od 0.';
+  } else {
+    if ((float)$input['placilo_znesek'] <= 0)
+      $errors['placilo_znesek'][] = 'Znesek mora biti večji od 0.';
+    if ((float)$input['placilo_znesek'] > $maxZnesek)
+      $errors['placilo_znesek'][] = 'Znesek je previsok (največ 999.999.999,99 EUR).';
+  }
 }
 
 // DATUM

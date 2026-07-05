@@ -15,7 +15,7 @@ Telo zahtevka je JSON objekt z naslednjimi polji:
 
 | Polje | Obvezno | Pravila / oblika | Opis |
 |---|---|---|---|
-| `placilo_znesek` | ✅ | `^\d+\.\d{2}$`, večji od `0` | Znesek v EUR z dvema decimalkama (npr. `10.00`). Pretvori se v 11-mestni zapis v centih. |
+| `placilo_znesek` | ✅ | `^\d+\.\d{2}$`, večji od `0`, največ `999999999.99` | Znesek v EUR z dvema decimalkama (npr. `10.00`). Pretvori se v 11-mestni zapis v centih (zato zgornja meja 999.999.999,99 EUR). |
 | `placilo_datum` | ✅ | oblika `d.m.Y`, ne v preteklosti | Rok plačila (npr. `31.12.2026`). |
 | `placilo_koda_namena` | ✅ | — | 4-črkovna koda namena (npr. `GDSV`). |
 | `placilo_namen` | ✅ | — | Namen plačila (prosti tekst). |
