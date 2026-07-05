@@ -34,66 +34,18 @@ if (!$input) {
 }
 
 /* --- VALIDACIJA --- */
-$errors = [];
-
-// ZNESEK
-// Payload ima znesek zapisan kot 11-mestno število centov → max 999.999.999,99 EUR.
-$maxZnesek = 999999999.99;
-if (!($input['placilo_znesek'] ?? '')) {
-  $errors['placilo_znesek'][] = 'Znesek je obvezen.';
-} else {
-  $znesekValid = (bool)preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek']);
-  if (!$znesekValid) {
-    $errors['placilo_znesek'][] = 'Znesek ni v pravilni obliki.';
-  } else {
-    if ((float)$input['placilo_znesek'] <= 0)
-      $errors['placilo_znesek'][] = 'Znesek mora biti večji od 0.';
-    if ((float)$input['placilo_znesek'] > $maxZnesek)
-      $errors['placilo_znesek'][] = 'Znesek je previsok (največ 999.999.999,99 EUR).';
-  }
-}
-
-// DATUM
-if (!($input['placilo_datum'] ?? '')) {
-  $errors['placilo_datum'][] = 'Datum plačila je obvezen.';
-} else {
-  $datum = DateTime::createFromFormat('d.m.Y', $input['placilo_datum']);
-  $datumValid = $datum && $datum->format('d.m.Y') === $input['placilo_datum'];
-  if (!$datumValid)
-    $errors['placilo_datum'][] = 'Datum plačila ni v pravilni obliki.';
-  if ($datumValid && $datum->setTime(0, 0)->getTimestamp() < (new DateTime('today'))->getTimestamp())
-    $errors['placilo_datum'][] = 'Datum plačila ne sme biti v preteklosti.';
-}
-
-// OBVEZNA POLJA
-if (!($input['placilo_koda_namena'] ?? '')) $errors['placilo_koda_namena'][] = 'Koda namena je obvezna.';
-if (!($input['placilo_namen'] ?? '')) $errors['placilo_namen'][] = 'Namen plačila je obvezen.';
-if (!($input['placilo_referenca_oznaka'] ?? '')) $errors['placilo_referenca_oznaka'][] = 'Oznaka reference je obvezna.';
-if (!($input['placilo_referenca_model'] ?? '')) $errors['placilo_referenca_oznaka'][] = 'Model reference je obvezen.';
-if (!($input['placilo_referenca_sklic'] ?? '')) $errors['placilo_referenca_oznaka'][] = 'Sklic je obvezen.';
-if (!($input['placnik_naziv'] ?? '')) $errors['placnik_naziv'][] = 'Naziv plačnika je obvezen.';
-if (!($input['prejemnik_naziv'] ?? '')) $errors['prejemnik_naziv'][] = 'Naziv prejemnika je obvezen.';
-
-if (($input['placilo_referenca_sklic'] ?? '') && !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca_sklic']))
-  $errors['placilo_referenca_oznaka'][] = 'Referenca lahko vsebuje le črke, številke in vezaje (-).';
-
-$iban = strtoupper(preg_replace('/\s+/', '', $input['prejemnik_iban'] ?? ''));
-if (!$iban) {
-  $errors['prejemnik_iban'][] = 'IBAN je obvezen.';
-} else {
-  if (!preg_match('/^SI\d{17}$/', $iban))
-    $errors['prejemnik_iban'][] = 'IBAN ni pravilne oblike (SI + 17 številk).';
-}
-
+require __DIR__ . '/validation.php';
+$errors = upn_validate($input);
 if (!empty($errors)) {
   json_respond(['errors' => $errors], 422);
   exit;
 }
 
 /* --- REFERENCA --- */
-$referenca = strtoupper($input['placilo_referenca_oznaka'])
-  . $input['placilo_referenca_model']
-  . $input['placilo_referenca_sklic'];
+$iban     = upn_normalize_iban($input['prejemnik_iban'] ?? '');
+$referenca = strtoupper(trim($input['placilo_referenca_oznaka']))
+  . trim($input['placilo_referenca_model'])
+  . trim($input['placilo_referenca_sklic']);
 
 /* --- PAYLOAD --- */
 $lines = [
