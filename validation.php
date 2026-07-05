@@ -9,6 +9,7 @@ function upn_rules(): array {
       'pattern'     => '^\d+\.\d{2}$',
       'patternMsg'  => 'Znesek ni v pravilni obliki.',
       'numeric'     => true,
+      'numStep'     => 0.01,
       'numGt'       => 0,
       'numGtMsg'    => 'Znesek mora biti večji od 0.',
       'numLte'      => 999999999.99,
@@ -136,9 +137,13 @@ function upn_attrs(string $field): string {
   if (!isset($rules[$field])) return '';
   $r     = $rules[$field];
   $attrs = [];
-  if ($r['required'] ?? false) $attrs[] = 'required';
+  if (($r['required'] ?? false) && !isset($r['optionalIfModel'])) $attrs[] = 'required';
   if (isset($r['exactlen']))   $attrs[] = 'minlength="' . $r['exactlen'] . '" maxlength="' . $r['exactlen'] . '"';
   elseif (isset($r['maxlen'])) $attrs[] = 'maxlength="' . $r['maxlen'] . '"';
+  // numerične meje (type=number): step iz numStep, min iz ekskluzivnega numGt+step, max iz numLte
+  if (isset($r['numStep'])) $attrs[] = 'step="' . sprintf('%.2f', $r['numStep']) . '"';
+  if (isset($r['numGt']))   $attrs[] = 'min="'  . sprintf('%.2f', $r['numGt'] + ($r['numStep'] ?? 0)) . '"';
+  if (isset($r['numLte']))  $attrs[] = 'max="'  . sprintf('%.2f', $r['numLte']) . '"';
   return implode(' ', $attrs);
 }
 

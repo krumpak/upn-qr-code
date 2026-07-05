@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/validation.php'; ?>
 <!DOCTYPE html>
 <html lang="sl">
 <head>
@@ -14,6 +15,9 @@
   <meta name="robots" content="noindex, nofollow">
 
   <link rel="stylesheet" href="./assets/styles.css">
+  <script>
+    window.UPN_RULES = <?= json_encode(upn_rules(), JSON_UNESCAPED_UNICODE) ?>;
+  </script>
   <script src="./assets/script.js" async defer></script>
 
 </head>
@@ -45,11 +49,8 @@
         <input
           type="number"
           name="placilo_znesek"
-          step="0.01"
-          min="0.01"
-          max="999999999.99"
           placeholder="00.01"
-          required
+          <?= upn_attrs('placilo_znesek') ?>
         >
         <span class="error"></span>
       </div>
@@ -58,11 +59,9 @@
         <label>Koda namena</label>
         <input
           name="placilo_koda_namena"
-          minlength="4"
-          maxlength="4"
           list="list_kode"
           placeholder="OTHR"
-          required
+          <?= upn_attrs('placilo_koda_namena') ?>
         >
         <!-- https://www.racunovodja.com/clanki.asp?clanek=5242 -->
         <datalist id="list_kode">
@@ -87,9 +86,8 @@
         <label>Namen plačila</label>
         <input
           name="placilo_namen"
-          maxlength="140"
           placeholder="Namen plačila"
-          required
+          <?= upn_attrs('placilo_namen') ?>
         >
         <span class="error"></span>
       </div>
@@ -100,10 +98,9 @@
 
         <input
           name="placilo_referenca_oznaka"
-          minlength="2"
-          maxlength="2"
           list="list_referenca_oznaka"
           placeholder="SI"
+          <?= upn_attrs('placilo_referenca_oznaka') ?>
         >
         <datalist id="list_referenca_oznaka">
           <option value="SI">SI - Slovensko SEPA območje</option>
@@ -112,11 +109,9 @@
 
         <input
           name="placilo_referenca_model"
-          minlength="2"
-          maxlength="2"
           list="list_referenca_model"
           placeholder="00"
-          required
+          <?= upn_attrs('placilo_referenca_model') ?>
         >
         <!-- https://www.sportna-oblacila.si/kaj-je-sklic/ -->
         <datalist id="list_referenca_model">
@@ -129,8 +124,8 @@
 
         <input
           name="placilo_referenca_sklic"
-          maxlength="22"
           placeholder="0000-00"
+          <?= upn_attrs('placilo_referenca_sklic') ?>
         >
         <span class="error"></span>
       </div>
@@ -141,7 +136,7 @@
           type="date"
           name="placilo_datum"
           value="<?= date('Y-m-d') ?>"
-          required
+          <?= upn_attrs('placilo_datum') ?>
         >
         <span class="error"></span>
       </div>
@@ -154,8 +149,8 @@
         <label>Naziv</label>
         <input
           name="placnik_naziv"
-          maxlength="70"
           placeholder="Ime in priimek"
+          <?= upn_attrs('placnik_naziv') ?>
         >
         <span class="error"></span>
       </div>
@@ -164,8 +159,8 @@
         <label>Naslov</label>
         <input
           name="placnik_naslov"
-          maxlength="70"
           placeholder="Slovenska cesta 123"
+          <?= upn_attrs('placnik_naslov') ?>
         >
         <span class="error"></span>
       </div>
@@ -174,8 +169,8 @@
         <label>Kraj</label>
         <input
           name="placnik_kraj"
-          maxlength="70"
           placeholder="1000 Ljubljana"
+          <?= upn_attrs('placnik_kraj') ?>
         >
         <span class="error"></span>
       </div>
@@ -189,7 +184,7 @@
         <input
           name="prejemnik_iban"
           placeholder="SI56 0000 0000 0000 000"
-          required
+          <?= upn_attrs('prejemnik_iban') ?>
         >
         <span class="error"></span>
       </div>
@@ -199,8 +194,7 @@
         <input
           name="prejemnik_naziv"
           placeholder="Ime in priimek ali podjetje"
-          maxlength="70"
-          required
+          <?= upn_attrs('prejemnik_naziv') ?>
         >
         <span class="error"></span>
       </div>
@@ -210,8 +204,7 @@
         <input
           name="prejemnik_naslov"
           placeholder="Slovenska cesta 123"
-          maxlength="70"
-          required
+          <?= upn_attrs('prejemnik_naslov') ?>
         >
         <span class="error"></span>
       </div>
@@ -221,8 +214,7 @@
         <input
           name="prejemnik_kraj"
           placeholder="1000 Ljubljana"
-          maxlength="70"
-          required
+          <?= upn_attrs('prejemnik_kraj') ?>
         >
         <span class="error"></span>
       </div>

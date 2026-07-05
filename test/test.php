@@ -1,6 +1,9 @@
 <?php
 define('URL', 'http://localhost:' . (getenv('TEST_PORT') ?: '9099') . '/generate.php');
 
+// validation.php vsebuje le definicije funkcij (brez stranskih učinkov) — za unit teste upn_attrs()
+require_once __DIR__ . '/../validation.php';
+
 $pass = 0;
 $fail = 0;
 $testNum = 0;
@@ -81,6 +84,15 @@ function assert_has_error(array $res, string $field): void {
   echo "  NAPAKA:     errors.$field → $mark\n";
   if (!$has)
     throw new RuntimeException("Manjka napaka za '$field'. Body: " . json_encode($res['body']));
+}
+
+function assert_attrs(string $field, string $expected): void {
+  $got  = upn_attrs($field);
+  $ok   = $got === $expected;
+  $mark = $ok ? "\033[32m✓\033[0m" : "\033[31m✗\033[0m";
+  echo "  ATRIBUTI:   upn_attrs('$field') → pričakovan='$expected'  dobim='$got'  $mark\n";
+  if (!$ok)
+    throw new RuntimeException("upn_attrs('$field'): pričakovan '$expected', dobim '$got'.");
 }
 
 function raw_lines(array $res): array {
@@ -491,6 +503,69 @@ test('Kontrolna vsota — zadnja vrstica je 3-mestna', function () {
   echo "  VSEBINA:    kontrolna vsota '$checksum' → " . ($ok ? "\033[32m✓ 3-mestna\033[0m" : "\033[31m✗ napačna\033[0m") . "\n";
   if (!$ok)
     throw new RuntimeException("Kontrolna vsota ni 3-mestna: '$checksum'");
+});
+
+/* ═══ upn_attrs() — HTML ATRIBUTI IZ PRAVIL ════════════ */
+
+test('upn_attrs — neznano polje → prazen niz', function () {
+  assert_attrs('neobstojece_polje', '');
+});
+
+test('upn_attrs — znesek: required + step/min/max (numStep/numGt/numLte)', function () {
+  // numGt=0 je ekskluzivna meja → HTML min = numGt + numStep = 0.01
+  assert_attrs('placilo_znesek', 'required step="0.01" min="0.01" max="999999999.99"');
+});
+
+test('upn_attrs — datum: samo required (brez dolžin/koraka)', function () {
+  assert_attrs('placilo_datum', 'required');
+});
+
+test('upn_attrs — koda namena: exactlen → minlength+maxlength', function () {
+  assert_attrs('placilo_koda_namena', 'required minlength="4" maxlength="4"');
+});
+
+test('upn_attrs — namen: maxlen → maxlength="42"', function () {
+  assert_attrs('placilo_namen', 'required maxlength="42"');
+});
+
+test('upn_attrs — oznaka reference: enum brez dolžine → samo required', function () {
+  assert_attrs('placilo_referenca_oznaka', 'required');
+});
+
+test('upn_attrs — model reference: exactlen=2', function () {
+  assert_attrs('placilo_referenca_model', 'required minlength="2" maxlength="2"');
+});
+
+test('upn_attrs — sklic: optionalIfModel → BREZ required (le maxlength="22")', function () {
+  assert_attrs('placilo_referenca_sklic', 'maxlength="22"');
+});
+
+test('upn_attrs — placnik_naziv: obvezen (naša izbira) + maxlength="33"', function () {
+  assert_attrs('placnik_naziv', 'required maxlength="33"');
+});
+
+test('upn_attrs — placnik_naslov: neobvezen → samo maxlength="33"', function () {
+  assert_attrs('placnik_naslov', 'maxlength="33"');
+});
+
+test('upn_attrs — placnik_kraj: neobvezen → samo maxlength="33"', function () {
+  assert_attrs('placnik_kraj', 'maxlength="33"');
+});
+
+test('upn_attrs — prejemnik_naziv: required + maxlength="33"', function () {
+  assert_attrs('prejemnik_naziv', 'required maxlength="33"');
+});
+
+test('upn_attrs — prejemnik_naslov: required + maxlength="33"', function () {
+  assert_attrs('prejemnik_naslov', 'required maxlength="33"');
+});
+
+test('upn_attrs — prejemnik_kraj: required + maxlength="33"', function () {
+  assert_attrs('prejemnik_kraj', 'required maxlength="33"');
+});
+
+test('upn_attrs — IBAN: required brez dolžin/koraka (validira pattern)', function () {
+  assert_attrs('prejemnik_iban', 'required');
 });
 
 // -------------------------------------------------------
