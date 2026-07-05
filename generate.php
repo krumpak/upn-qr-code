@@ -30,31 +30,32 @@ if (!$input) {
 }
 
 /* --- VALIDACIJA --- */
-if (!preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek'] ?? '')) {
-  json_respond(['error' => 'Neveljaven znesek.', 'id' => 'placilo_znesek'], 422);
-  exit;
+$errors = [];
+
+if (!($input['placilo_znesek'] ?? '')) {
+  $errors['placilo_znesek'][] = 'Znesek je obvezen.';
+} else {
+  if (!preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek']))
+    $errors['placilo_znesek'][] = 'Znesek ni v pravilni obliki.';
+  if (preg_match('/^\d+\.\d{2}$/', $input['placilo_znesek']) && (float)$input['placilo_znesek'] <= 0)
+    $errors['placilo_znesek'][] = 'Znesek mora biti večji od 0.';
 }
 
-if (!empty($input['placilo_referenca']) &&
-    !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca'])) {
-  json_respond(['error' => 'Neveljavna referenca.', 'id' => 'placilo_referenca'], 422);
-  exit;
-}
+if (!empty($input['placilo_referenca']) && !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca']))
+  $errors['placilo_referenca'][] = 'Neveljavna referenca.';
 
 $datum = DateTime::createFromFormat('d.m.Y', $input['placilo_datum'] ?? '');
 if (!$datum || $datum->format('d.m.Y') !== ($input['placilo_datum'] ?? '')) {
-  json_respond(['error' => 'Neveljaven datum.', 'id' => 'placilo_datum'], 422);
-  exit;
+  $errors['placilo_datum'][] = 'Neveljaven datum.';
+} elseif ($datum->setTime(0, 0)->getTimestamp() < (new DateTime('today'))->getTimestamp()) {
+  $errors['placilo_datum'][] = 'Datum plačila [ ' . $input['placilo_datum'] . ' ] ne sme biti v preteklosti.';
 }
 
-$datum->setTime(0, 0);
-if ($datum->getTimestamp() < (new DateTime('today'))->getTimestamp()) {
-  json_respond(['error' => 'Datum plačila [ ' . $input['placilo_datum'] . ' ] ne sme biti v preteklosti.', 'id' => 'placilo_datum'], 422);
-  exit;
-}
+if (!preg_match('/^SI\d{17}$/', $input['prejemnik_iban'] ?? ''))
+  $errors['prejemnik_iban'][] = 'Neveljaven IBAN.';
 
-if (!preg_match('/^SI\d{17}$/', $input['prejemnik_iban'] ?? '')) {
-  json_respond(['error' => 'Neveljaven IBAN.', 'id' => 'prejemnik_iban'], 422);
+if (!empty($errors)) {
+  json_respond(['errors' => $errors], 422);
   exit;
 }
 

@@ -108,8 +108,14 @@ async function generate (event) {
 
   // ZNESEK
   const znesek = String(data.placilo_znesek).replace(',', '.');
-  if (!znesek || znesek === 'NaN') addError('placilo_znesek', 'Znesek je obvezen.');
-  else if (!/^\d+(\.\d{1,2})?$/.test(znesek)) addError('placilo_znesek', 'Znesek ni v pravilni obliki.');
+  if (!znesek || znesek === 'NaN') {
+    addError('placilo_znesek', 'Znesek je obvezen.');
+  } else {
+    if (!/^\d+(\.\d{1,2})?$/.test(znesek))
+      addError('placilo_znesek', 'Znesek ni v pravilni obliki.');
+    if (/^\d+(\.\d{1,2})?$/.test(znesek) && parseFloat(znesek) <= 0)
+      addError('placilo_znesek', 'Znesek mora biti večji od 0.');
+  }
 
   // DATUM
   if (!data.placilo_datum) {
@@ -163,8 +169,11 @@ async function generate (event) {
   
   await new Promise(resolve => setTimeout(resolve, 1000 * 1));
 
-  if (json.error) {
-    $('#errors').textContent = 'Popravi vnešene napake';
+  if (json.errors) {
+    Object.entries(json.errors).forEach(([field, msgs]) => {
+      msgs.forEach(msg => addError(field, msg));
+    });
+    renderErrors(errors);
     $('#placeholder-link').classList.remove('loading');
 
     console.error(json.error);
