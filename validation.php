@@ -109,12 +109,12 @@ function upn_rules(): array {
       'iso88592'    => true,
     ],
     'prejemnik_iban' => [
-      'label'        => 'IBAN prejemnika',
-      'required'     => true,
-      'requiredMsg'  => 'IBAN je obvezen.',
-      'normalizeIban'=> true,
-      'pattern'      => '^SI\d{17}$',
-      'patternMsg'   => 'IBAN ni pravilne oblike (SI + 17 številk).',
+      'label'         => 'IBAN prejemnika',
+      'required'      => true,
+      'requiredMsg'   => 'IBAN je obvezen.',
+      'normalizeIban' => true,
+      'pattern'       => '^SI\d{17}$',
+      'patternMsg'    => 'IBAN ni pravilne oblike (SI + 17 številk).',
     ],
   ];
 }
