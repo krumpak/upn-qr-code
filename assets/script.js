@@ -121,9 +121,14 @@ async function generate (event) {
   if (!data.placilo_datum) {
     addError('placilo_datum', 'Datum plačila je obvezen.');
   } else {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (new Date(data.placilo_datum) < today) addError('placilo_datum', 'Datum plačila ne sme biti v preteklosti.');
+    const parsedDatum = new Date(data.placilo_datum);
+    if (isNaN(parsedDatum))
+      addError('placilo_datum', 'Datum plačila ni v pravilni obliki.');
+    if (!isNaN(parsedDatum)) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (parsedDatum < today) addError('placilo_datum', 'Datum plačila ne sme biti v preteklosti.');
+    }
   }
 
   // OBVEZNA POLJA

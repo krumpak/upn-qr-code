@@ -32,6 +32,7 @@ if (!$input) {
 /* --- VALIDACIJA --- */
 $errors = [];
 
+// ZNESEK
 if (!($input['placilo_znesek'] ?? '')) {
   $errors['placilo_znesek'][] = 'Znesek je obvezen.';
 } else {
@@ -41,15 +42,29 @@ if (!($input['placilo_znesek'] ?? '')) {
     $errors['placilo_znesek'][] = 'Znesek mora biti večji od 0.';
 }
 
+// DATUM
+if (!($input['placilo_datum'] ?? '')) {
+  $errors['placilo_datum'][] = 'Datum plačila je obvezen.';
+} else {
+  $datum = DateTime::createFromFormat('d.m.Y', $input['placilo_datum']);
+  $datumValid = $datum && $datum->format('d.m.Y') === $input['placilo_datum'];
+  if (!$datumValid)
+    $errors['placilo_datum'][] = 'Datum plačila ni v pravilni obliki.';
+  if ($datumValid && $datum->setTime(0, 0)->getTimestamp() < (new DateTime('today'))->getTimestamp())
+    $errors['placilo_datum'][] = 'Datum plačila ne sme biti v preteklosti.';
+}
+
+// OBVEZNA POLJA
+if (!($input['placilo_koda_namena'] ?? '')) $errors['placilo_koda_namena'][] = 'Koda namena je obvezna.';
+if (!($input['placilo_namen'] ?? '')) $errors['placilo_namen'][] = 'Namen plačila je obvezen.';
+if (!($input['placilo_referenca_oznaka'] ?? '')) $errors['placilo_referenca_oznaka'][] = 'Oznaka reference je obvezna.';
+if (!($input['placilo_referenca_model'] ?? '')) $errors['placilo_referenca_oznaka'][] = 'Model reference je obvezen.';
+if (!($input['placilo_referenca_sklic'] ?? '')) $errors['placilo_referenca_oznaka'][] = 'Sklic je obvezen.';
+if (!($input['placnik_naziv'] ?? '')) $errors['placnik_naziv'][] = 'Naziv plačnika je obvezen.';
+if (!($input['prejemnik_naziv'] ?? '')) $errors['prejemnik_naziv'][] = 'Naziv prejemnika je obvezen.';
+
 if (!empty($input['placilo_referenca']) && !preg_match('/^[A-Z0-9\-]+$/i', $input['placilo_referenca']))
   $errors['placilo_referenca'][] = 'Neveljavna referenca.';
-
-$datum = DateTime::createFromFormat('d.m.Y', $input['placilo_datum'] ?? '');
-if (!$datum || $datum->format('d.m.Y') !== ($input['placilo_datum'] ?? '')) {
-  $errors['placilo_datum'][] = 'Neveljaven datum.';
-} elseif ($datum->setTime(0, 0)->getTimestamp() < (new DateTime('today'))->getTimestamp()) {
-  $errors['placilo_datum'][] = 'Datum plačila [ ' . $input['placilo_datum'] . ' ] ne sme biti v preteklosti.';
-}
 
 if (!preg_match('/^SI\d{17}$/', $input['prejemnik_iban'] ?? ''))
   $errors['prejemnik_iban'][] = 'Neveljaven IBAN.';
