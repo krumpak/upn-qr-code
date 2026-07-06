@@ -89,7 +89,7 @@ h2 {
 }
 select,
 button {
-  color: ar(--color);
+  color: var(--color);
   border-radius: var(--radius);
   border: 1px solid var(--color);
 }
