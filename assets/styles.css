@@ -71,6 +71,11 @@ h2 {
   grid-column: 2 / span 2;
 }
 
+.row label:has(~ .error:not(:empty)),
+.row input:not([readonly]):has(~ .error:not(:empty))::placeholder {
+  color: red;
+}
+
 .row input:not([name="placilo_referenca_oznaka"]):not([name="placilo_referenca_model"]):has(~ .error:not(:empty)) {
   border-color: red;
 }
