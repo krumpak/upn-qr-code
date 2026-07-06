@@ -1,29 +1,124 @@
+// Datum je v obliki Y-m-d (input type=date); IBAN s presledki (client normalizira).
+const VELJAVEN = {
+  placilo_znesek: '10.00',
+  placilo_datum: '2026-12-19',
+  placilo_koda_namena: 'GDSV',
+  placilo_namen: 'Test plačilo',
+  placilo_referenca_oznaka: 'SI',
+  placilo_referenca_model: '00',
+  placilo_referenca_sklic: '12345',
+  placnik_naziv: 'Test Plačnik',
+  placnik_naslov: 'Ulica 1',
+  placnik_kraj: '1000 Ljubljana',
+  prejemnik_iban: 'SI56 0203 6025 3863 406',
+  prejemnik_naziv: 'Test Prejemnik',
+  prejemnik_naslov: 'Cesta 2',
+  prejemnik_kraj: '2000 Maribor',
+};
+
+// Pričakovani 'result' nizi za veljavne scenarije (izračunani prek dejanskega generate.php).
+const RESULT_BASE        = "01  UPNQR\n02  \n03  \n04  \n05  \n06  Test Plačnik\n07  Ulica 1\n08  1000 Ljubljana\n09  00000001000\n10  \n11  \n12  GDSV\n13  Test plačilo\n14  19.12.2026\n15  SI56020360253863406\n16  SI0012345\n17  Test Prejemnik\n18  Cesta 2\n19  2000 Maribor\n20  157";
+const RESULT_MODEL99     = "01  UPNQR\n02  \n03  \n04  \n05  \n06  Test Plačnik\n07  Ulica 1\n08  1000 Ljubljana\n09  00000001000\n10  \n11  \n12  GDSV\n13  Test plačilo\n14  19.12.2026\n15  SI56020360253863406\n16  SI99\n17  Test Prejemnik\n18  Cesta 2\n19  2000 Maribor\n20  152";
+const RESULT_OPT_PLACNIK = "01  UPNQR\n02  \n03  \n04  \n05  \n06  Test Plačnik\n07  \n08  \n09  00000001000\n10  \n11  \n12  GDSV\n13  Test plačilo\n14  19.12.2026\n15  SI56020360253863406\n16  SI0012345\n17  Test Prejemnik\n18  Cesta 2\n19  2000 Maribor\n20  136";
+
+// Prazna predloga pričakovanega izida (vsa polja brez napake).
+const PRAZNO = {
+  errors: '',
+  placilo_znesek: '', placilo_koda_namena: '', placilo_namen: '',
+  placilo_referenca_oznaka: '', placilo_referenca_model: '', placilo_referenca_sklic: '',
+  placilo_datum: '',
+  placnik_naziv: '', placnik_naslov: '', placnik_kraj: '',
+  prejemnik_iban: '', prejemnik_naziv: '', prejemnik_naslov: '', prejemnik_kraj: '',
+  result: 'n/a',
+};
+
+// napake(): scenarij z napakami — poda se le polja z napako (ostala ostanejo prazna).
+function napake (polja) {
+  return { ...PRAZNO, errors: 'Popravi vnešene napake', ...polja };
+}
+// veljavno(): scenarij brez napak — poda se le pričakovani 'result'.
+function veljavno (result) {
+  return { ...PRAZNO, result };
+}
+// ref(): oznaka/model/sklic si delijo isti .error span → vsem trem enako (združeno) sporočilo.
+function ref (msg) {
+  return { placilo_referenca_oznaka: msg, placilo_referenca_model: msg, placilo_referenca_sklic: msg };
+}
+
 const scenariji = [
+  /* ═══ VELJAVNI VNOSI ═══════════════════════════════════ */
+  { it: 'znesek brez decimalk (10 → normalizira v 10.00)', active: true, input: { ...VELJAVEN, placilo_znesek: '10' }, expect: veljavno(RESULT_BASE) },
+  { it: 'model 99 + prazen sklic → OK (optionalIfModel)', active: true, input: { ...VELJAVEN, placilo_referenca_model: '99', placilo_referenca_sklic: '' }, expect: veljavno(RESULT_MODEL99) },
+  { it: 'neobvezni polji plačnika prazni (naslov, kraj) → OK', active: true, input: { ...VELJAVEN, placnik_naslov: '', placnik_kraj: '' }, expect: veljavno(RESULT_OPT_PLACNIK) },
+
+  /* ═══ PRAZEN OBRAZEC (vsa obvezna polja) ═══════════════ */
   {
-    it: 'fails empty form',
+    it: 'prazen obrazec → vse obvezne napake',
     active: true,
     input: {},
-    expect: {
-      "errors": "Popravi vnešene napake",
-      "placilo_znesek": "Znesek je obvezen.",
-      "placilo_koda_namena": "Koda namena je obvezna.",
-      "placilo_namen": "Namen plačila je obvezen.",
-      "placilo_referenca_oznaka": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
-      "placilo_referenca_model": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
-      "placilo_referenca_sklic": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
-      "placilo_datum": "Datum plačila je obvezen.",
-      "placnik_naziv": "Naziv plačnika je obvezen.",
-      "placnik_naslov": "",
-      "placnik_kraj": "",
-      "prejemnik_iban": "IBAN je obvezen.",
-      "prejemnik_naziv": "Naziv prejemnika je obvezen.",
-      "prejemnik_naslov": "Naslov prejemnika je obvezen.",
-      "prejemnik_kraj": "Kraj prejemnika je obvezen.",
-      "result": "n/a"
-    }
+    expect: napake({
+      placilo_znesek: 'Znesek je obvezen.',
+      placilo_koda_namena: 'Koda namena je obvezna.',
+      placilo_namen: 'Namen plačila je obvezen.',
+      placilo_datum: 'Datum plačila je obvezen.',
+      ...ref('Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).'),
+      placnik_naziv: 'Naziv plačnika je obvezen.',
+      prejemnik_iban: 'IBAN je obvezen.',
+      prejemnik_naziv: 'Naziv prejemnika je obvezen.',
+      prejemnik_naslov: 'Naslov prejemnika je obvezen.',
+      prejemnik_kraj: 'Kraj prejemnika je obvezen.',
+    }),
   },
+
+  /* ═══ ZNESEK ═══════════════════════════════════════════ */
+  { it: 'znesek prazen', active: true, input: { ...VELJAVEN, placilo_znesek: '' }, expect: napake({ placilo_znesek: 'Znesek je obvezen.' }) },
+  { it: 'znesek napačna oblika (abc)', active: true, input: { ...VELJAVEN, placilo_znesek: 'abc' }, expect: napake({ placilo_znesek: 'Znesek je obvezen.' }) },
+  { it: 'znesek = 0', active: true, input: { ...VELJAVEN, placilo_znesek: '0' }, expect: napake({ placilo_znesek: 'Znesek mora biti večji od 0.' }) },
+  { it: 'znesek previsok', active: true, input: { ...VELJAVEN, placilo_znesek: '1000000000.00' }, expect: napake({ placilo_znesek: 'Znesek je previsok (največ 999.999.999,99 EUR).' }) },
+
+  /* ═══ DATUM ════════════════════════════════════════════ */
+  { it: 'datum prazen', active: true, input: { ...VELJAVEN, placilo_datum: '' }, expect: napake({ placilo_datum: 'Datum plačila je obvezen.' }) },
+  { it: 'datum v preteklosti', active: true, input: { ...VELJAVEN, placilo_datum: '2020-01-01' }, expect: napake({ placilo_datum: 'Datum plačila ne sme biti v preteklosti.' }) },
+
+  /* ═══ KODA NAMENA ══════════════════════════════════════ */
+  { it: 'koda prazna', active: true, input: { ...VELJAVEN, placilo_koda_namena: '' }, expect: napake({ placilo_koda_namena: 'Koda namena je obvezna.' }) },
+  { it: 'koda prekratka (ADV) → dolžina + vzorec', active: true, input: { ...VELJAVEN, placilo_koda_namena: 'ADV' }, expect: napake({ placilo_koda_namena: 'Koda namena mora biti dolg/-a točno 4 znakov.Koda namena mora vsebovati 4 velike črke (A-Z).' }) },
+  { it: 'koda z nedovoljenimi znaki (GD12)', active: true, input: { ...VELJAVEN, placilo_koda_namena: 'GD12' }, expect: napake({ placilo_koda_namena: 'Koda namena mora vsebovati 4 velike črke (A-Z).' }) },
+
+  /* ═══ NAMEN PLAČILA ════════════════════════════════════ */
+  { it: 'namen prazen', active: true, input: { ...VELJAVEN, placilo_namen: '' }, expect: napake({ placilo_namen: 'Namen plačila je obvezen.' }) },
+  { it: 'namen predolg (43 znakov)', active: true, input: { ...VELJAVEN, placilo_namen: 'A'.repeat(43) }, expect: napake({ placilo_namen: 'Namen plačila je predolg/-a (največ 42 znakov).' }) },
+
+  /* ═══ REFERENCA (oznaka / model / sklic) ═══════════════ */
+  { it: 'oznaka prazna', active: true, input: { ...VELJAVEN, placilo_referenca_oznaka: '' }, expect: napake(ref('Oznaka reference je obvezna.')) },
+  { it: 'oznaka neveljavna (XX)', active: true, input: { ...VELJAVEN, placilo_referenca_oznaka: 'XX' }, expect: napake(ref('Oznaka reference je lahko le SI ali RF.')) },
+  { it: 'model prazen', active: true, input: { ...VELJAVEN, placilo_referenca_model: '' }, expect: napake(ref('Model reference je obvezen.')) },
+  { it: 'model prekratek (1) → dolžina + vzorec', active: true, input: { ...VELJAVEN, placilo_referenca_model: '1' }, expect: napake(ref('Model reference mora biti dolg/-a točno 2 znakov.Model reference morata biti 2 števki.')) },
+  { it: 'model nenumeričen (AB)', active: true, input: { ...VELJAVEN, placilo_referenca_model: 'AB' }, expect: napake(ref('Model reference morata biti 2 števki.')) },
+  { it: 'sklic prazen (model 00)', active: true, input: { ...VELJAVEN, placilo_referenca_sklic: '' }, expect: napake(ref('Sklic je obvezen (razen pri modelu 99).')) },
+  { it: 'sklic z nedovoljenimi znaki', active: true, input: { ...VELJAVEN, placilo_referenca_sklic: 'abc!@#' }, expect: napake(ref('Referenca lahko vsebuje le črke, številke in vezaje (-).')) },
+  { it: 'sklic predolg (23 znakov)', active: true, input: { ...VELJAVEN, placilo_referenca_sklic: '1'.repeat(23) }, expect: napake(ref('Sklic je predolg/-a (največ 22 znakov).')) },
+
+  /* ═══ PLAČNIK ══════════════════════════════════════════ */
+  { it: 'plačnik naziv prazen', active: true, input: { ...VELJAVEN, placnik_naziv: '' }, expect: napake({ placnik_naziv: 'Naziv plačnika je obvezen.' }) },
+  { it: 'plačnik naziv predolg (34)', active: true, input: { ...VELJAVEN, placnik_naziv: 'A'.repeat(34) }, expect: napake({ placnik_naziv: 'Naziv plačnika je predolg/-a (največ 33 znakov).' }) },
+  { it: 'plačnik naslov predolg (34)', active: true, input: { ...VELJAVEN, placnik_naslov: 'A'.repeat(34) }, expect: napake({ placnik_naslov: 'Naslov plačnika je predolg/-a (največ 33 znakov).' }) },
+
+  /* ═══ PREJEMNIK ════════════════════════════════════════ */
+  { it: 'prejemnik naziv prazen', active: true, input: { ...VELJAVEN, prejemnik_naziv: '' }, expect: napake({ prejemnik_naziv: 'Naziv prejemnika je obvezen.' }) },
+  { it: 'prejemnik naziv predolg (34)', active: true, input: { ...VELJAVEN, prejemnik_naziv: 'A'.repeat(34) }, expect: napake({ prejemnik_naziv: 'Naziv prejemnika je predolg/-a (največ 33 znakov).' }) },
+  { it: 'prejemnik naslov prazen', active: true, input: { ...VELJAVEN, prejemnik_naslov: '' }, expect: napake({ prejemnik_naslov: 'Naslov prejemnika je obvezen.' }) },
+  { it: 'prejemnik kraj prazen', active: true, input: { ...VELJAVEN, prejemnik_kraj: '' }, expect: napake({ prejemnik_kraj: 'Kraj prejemnika je obvezen.' }) },
+
+  /* ═══ IBAN ═════════════════════════════════════════════ */
+  { it: 'iban prazen', active: true, input: { ...VELJAVEN, prejemnik_iban: '' }, expect: napake({ prejemnik_iban: 'IBAN je obvezen.' }) },
+  { it: 'iban napačna oblika (DE)', active: true, input: { ...VELJAVEN, prejemnik_iban: 'DE89370400440532013000' }, expect: napake({ prejemnik_iban: 'IBAN ni pravilne oblike (SI + 17 številk).' }) },
+  { it: 'iban prekratek (SI00)', active: true, input: { ...VELJAVEN, prejemnik_iban: 'SI00' }, expect: napake({ prejemnik_iban: 'IBAN ni pravilne oblike (SI + 17 številk).' }) },
+
+  // Osnovni VELJAVEN vnos — za izolirano testiranje posameznega polja (prelomimo eno polje).
+  { it: 'veljaven osnovni vnos', active: true, input: { ...VELJAVEN }, expect: veljavno(RESULT_BASE) },
   {
-    it: 'passes form',
+    it: 'veljaven vnos (Miha/Petra)',
     active: true,
     input: {
       placilo_znesek: 321,
@@ -41,50 +136,8 @@ const scenariji = [
       prejemnik_naslov: 'Prejmova 21',
       prejemnik_kraj: '2345 Petrovo',
     },
-    expect: {
-      "errors": "",
-      "placilo_znesek": "",
-      "placilo_koda_namena": "",
-      "placilo_namen": "",
-      "placilo_referenca_oznaka": "",
-      "placilo_referenca_model": "",
-      "placilo_referenca_sklic": "",
-      "placilo_datum": "",
-      "placnik_naziv": "",
-      "placnik_naslov": "",
-      "placnik_kraj": "",
-      "prejemnik_iban": "",
-      "prejemnik_naziv": "",
-      "prejemnik_naslov": "",
-      "prejemnik_kraj": "",
-      "result": "01  UPNQR\n02  \n03  \n04  \n05  \n06  Miha Plača\n07  Mihova 3\n08  1234 Mesto\n09  00000032100\n10  \n11  \n12  ADVA\n13  Plačilo predujma\n14  19.12.2026\n15  SI56000000000000000\n16  SI1243-21\n17  Petra Prejme\n18  Prejmova 21\n19  2345 Petrovo\n20  158"
-    }
+    expect: veljavno("01  UPNQR\n02  \n03  \n04  \n05  \n06  Miha Plača\n07  Mihova 3\n08  1234 Mesto\n09  00000032100\n10  \n11  \n12  ADVA\n13  Plačilo predujma\n14  19.12.2026\n15  SI56000000000000000\n16  SI1243-21\n17  Petra Prejme\n18  Prejmova 21\n19  2345 Petrovo\n20  158"),
   },
-  {
-    it: 'fails empty form',
-    active: true,
-    input: {
-      placilo_koda_namena: 'ADV',
-    },
-    expect: {
-      "errors": "Popravi vnešene napake",
-      "placilo_znesek": "Znesek je obvezen.",
-      "placilo_koda_namena": "Koda namena mora biti dolg/-a točno 4 znakov.Koda namena mora vsebovati 4 velike črke (A-Z).",
-      "placilo_namen": "Namen plačila je obvezen.",
-      "placilo_referenca_oznaka": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
-      "placilo_referenca_model": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
-      "placilo_referenca_sklic": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
-      "placilo_datum": "Datum plačila je obvezen.",
-      "placnik_naziv": "Naziv plačnika je obvezen.",
-      "placnik_naslov": "",
-      "placnik_kraj": "",
-      "prejemnik_iban": "IBAN je obvezen.",
-      "prejemnik_naziv": "Naziv prejemnika je obvezen.",
-      "prejemnik_naslov": "Naslov prejemnika je obvezen.",
-      "prejemnik_kraj": "Kraj prejemnika je obvezen.",
-      "result": "n/a"
-    }
-  }
 ];
 
 function zagon () {
@@ -102,12 +155,15 @@ if (document.readyState === 'complete') {
 }
 
 async function test () {
+  const totalTests = scenariji.filter(s => s.active).length;
+  let countTest = 0;
   for (const scn of scenariji) {
     if (!scn.active) {
       continue;
     }
 
-    console.log(`📋 it ${scn.it}`);
+    countTest++;
+    console.log(`📋 [${countTest}/${totalTests}] it ${scn.it}`);
     await napolni(scn.input);
     console.log("✍️ Napolnjeno");
     clickGenerate();
@@ -142,6 +198,8 @@ async function test () {
       console.log('expect:', scn.expect);
     }
     console.log(`-----`);
+
+    await delay(2);
   }
 
   // pregled testov
@@ -155,13 +213,12 @@ async function test () {
     console.log(...icon(scn));
   }
 
-  const allTests = scenariji.filter(scn => scn.active).length;
   const passedTests = scenariji.filter(scn => scn.itPasses === true && scn.active).length;
   const failedTests = scenariji.filter(scn => scn.itPasses === false && scn.active).length;
 
   console.log("-----");
 
-  console.log(failedTests > 0 ? `❌ ${failedTests}/${allTests} testov neuspešnih` : `✅ Vsi testi uspešni (${passedTests}/${allTests})`);
+  console.log(failedTests > 0 ? `❌ ${failedTests}/${totalTests} testov neuspešnih` : `✅ Vsi testi uspešni (${passedTests}/${totalTests})`);
 }
 
 // Vrne argumente za console.log z barvno obarvano kljukico (%c + CSS; brskalniška konzola
@@ -239,4 +296,9 @@ function waitFor (predicate, { timeout = 5000, interval = 50 } = {}) {
       setTimeout(poll, interval);
     })();
   });
+}
+
+// Pavza N sekund (za opazovanje poteka v brskalniku).
+function delay (seconds = 1) {
+  return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
