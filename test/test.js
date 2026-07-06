@@ -1,9 +1,26 @@
 const scenariji = [
   {
     it: 'fails empty form',
-    active: false,
+    active: true,
     input: {},
-    expect: {}
+    expect: {
+      "errors": "Popravi vnešene napake",
+      "placilo_znesek": "Znesek je obvezen.",
+      "placilo_koda_namena": "Koda namena je obvezna.",
+      "placilo_namen": "Namen plačila je obvezen.",
+      "placilo_referenca_oznaka": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
+      "placilo_referenca_model": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
+      "placilo_referenca_sklic": "Oznaka reference je obvezna.Model reference je obvezen.Sklic je obvezen (razen pri modelu 99).",
+      "placilo_datum": "Datum plačila je obvezen.",
+      "placnik_naziv": "Naziv plačnika je obvezen.",
+      "placnik_naslov": "",
+      "placnik_kraj": "",
+      "prejemnik_iban": "IBAN je obvezen.",
+      "prejemnik_naziv": "Naziv prejemnika je obvezen.",
+      "prejemnik_naslov": "Naslov prejemnika je obvezen.",
+      "prejemnik_kraj": "Kraj prejemnika je obvezen.",
+      "result": "n/a"
+    }
   },
   {
     it: 'passes form',
@@ -113,39 +130,49 @@ async function test () {
     });
 
     if (itPasses) {
-      console.log(`${icon(scn)} it ${scn.it}`);
+      console.log(...icon(scn));
     } else {
-      console.log(`${icon(scn)} it ${scn.it} — ${diffs.length} razlik:`);
+      console.log(...icon(scn, ` — ${diffs.length} razlik:`));
       diffs.forEach(d => {
         console.log(`   • ${d.key}`);
         console.log(`     expect: ${JSON.stringify(d.expect)}`);
         console.log(`     actual: ${JSON.stringify(d.actual)}`);
       });
+      console.log('actual:', actual);
+      console.log('expect:', scn.expect);
     }
     console.log(`-----`);
   }
 
   // pregled testov
-  console.log("Rezultat testov:");
+  console.log("PREGLED TESTOV");
 
   for (const scn of scenariji) {
     if (!scn.active) {
       continue;
     }
 
-    console.log(`${icon(scn)} it ${scn.it}`);
+    console.log(...icon(scn));
   }
 
   const allTests = scenariji.filter(scn => scn.active).length;
+  const passedTests = scenariji.filter(scn => scn.itPasses === true && scn.active).length;
   const failedTests = scenariji.filter(scn => scn.itPasses === false && scn.active).length;
 
   console.log("-----");
 
-  console.log(failedTests > 0 ? `❌ ${failedTests}/${allTests} je fajlalo` : `✅ ${allTests} testov je uspelo`);
+  console.log(failedTests > 0 ? `❌ ${failedTests}/${allTests} testov neuspešnih` : `✅ Vsi testi uspešni (${passedTests}/${allTests})`);
 }
 
-function icon (input) {
-  return input.itPasses ? '✅' : '❌';
+// Vrne argumente za console.log z barvno obarvano kljukico (%c + CSS; brskalniška konzola
+// ANSI kod ne izriše). Uporaba: console.log(...icon(scn)) ali console.log(...icon(scn, ' …')).
+function icon (scn, suffix = '') {
+  const ok = scn.itPasses;
+  return [
+    `%c${ok ? '✓' : '✗'}%c it ${scn.it}${suffix}`,
+    `color: ${ok ? '#2ecc40' : '#ff4136'}; font-weight: bold`,
+    '',
+  ];
 }
 
 // Primerja expect/actual po ključih (neodvisno od vrstnega reda) in vrne le razlike.

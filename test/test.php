@@ -1,4 +1,13 @@
 <?php
+/* --- Zapis celotnega izpisa v lokalno datoteko (glej .gitignore) --- */
+/* Terminal ohrani barve; v datoteko se ANSI kode odstranijo za berljivost. */
+$reportFile = __DIR__ . '/report.log';
+file_put_contents($reportFile, "Poročilo testov — " . date('Y-m-d H:i:s') . "\n");
+ob_start(function ($chunk) use ($reportFile) {
+  file_put_contents($reportFile, preg_replace('/\033\[[0-9;]*m/', '', $chunk), FILE_APPEND);
+  return $chunk;
+});
+
 define('URL', 'http://localhost:' . (getenv('TEST_PORT') ?: '9099') . '/generate.php');
 
 // validation.php vsebuje le definicije funkcij (brez stranskih učinkov) — za unit teste upn_attrs()
