@@ -73,7 +73,7 @@ function upn_rules(): array {
       'label'       => 'Naziv plačnika',
       'required'    => true,
       'requiredMsg' => 'Naziv plačnika je obvezen.',
-      'maxlen'      => 33,
+      'maxlen'      => 40,
       'iso88592'    => true,
     ],
     'placnik_naslov' => [
